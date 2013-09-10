@@ -14,9 +14,22 @@
 				});
 				jsPlumb.draggable($("#element2"),{
 					containment : "parent"
-				});				
+				});
+				jsPlumb.draggable($("#element3"),{
+					containment : "parent"
+				});			
 				jsPlumb.Defaults.Container = $("#jsContainer");
 				
+				jsPlumb.addEndpoint($("#element1"), {
+					endpoint : "Dot",
+					anchor: ["Perimeter", { shape : "Square"} ]
+
+				});
+				jsPlumb.addEndpoint($("#element2"), {
+					endpoint : "Dot",
+					anchor: ["Perimeter", { shape : "Square"} ]
+
+				});
 				jsPlumb.connect({
 				    source:"element1",
 				    target:"element2",
@@ -42,6 +55,9 @@
 			</div>
 			<div id="element2" class="window">
 				<strong>Dog</strong>
+			</div>
+			<div id="element3" class="diamond">
+				<div class="diamond-text">Hello</div>
 			</div>
 
 		</div>
