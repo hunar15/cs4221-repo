@@ -16,39 +16,26 @@
 					containment : "parent"
 				});				
 				jsPlumb.Defaults.Container = $("#jsContainer");
-				jsPlumb.makeSource($("#element1"), {
-				    anchor:"Continuous",
-				    endpoint:["Rectangle", { width:10, height:10 }],
-				    maxConnections:3
-				});
-				/*jsPlumb.connect({
+				
+				jsPlumb.connect({
 				    source:"element1",
 				    target:"element2",
-				    endpoint:"Rectangle"
-				});*/
+				    paintStyle:{lineWidth:2,strokeStyle:'rgb(0,0,0)'},
+				    anchor: ["Perimeter", { shape : "Square"} ],
+				    endpoint : "Dot",
+				    endpointStyle : { radius : 3},
+				    connector : "Flowchart"
+				});
 
 			});
 		</script>
-		<style type="text/css">
-			#jsContainer { height: 1000px; width: 1000px}
-			.window 
-			{ 
-				width: 80px;
-				height: 80px;
-				padding: 0.5em;
-				position: absolute;
-				border:solid 5px #42c260;
-				-moz-border-radius: 14px;
-				-webkit-border-radius: 14px;
-				border-radius: 14px;
-				-moz-box-shadow: 1px 0px 8px #82a385;
-				-webkit-box-shadow: 1px 0px 8px #82a385;
-				box-shadow: 1px 0px 8px #82a385;
-			}
-		</style>
+		<link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
 	<head>
 
 	<body>
+		<div id="sidebar">
+			<h2>Sidebar</h2>
+		</div>
 		<div id="jsContainer">
 			<div id="element1" class="window">
 				<strong>Hello</strong>

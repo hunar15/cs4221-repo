@@ -1,0 +1,33 @@
+#jsContainer 
+{ 
+	position: fixed;
+	left : 230px;
+	height: 80%;
+	width: 70%;
+	border:solid 2px #363636;
+	-moz-border-radius: 1px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	background-color : #e8e8e8: 
+}
+#sidebar
+{
+	position: fixed;
+	width: 200px;
+	background-color: blue;
+}
+.window 
+{ 
+	width: 80px;
+	height: 80px;
+	padding: 0.5em;
+	position: absolute;
+	border:solid 5px #42c260;
+	-moz-border-radius: 14px;
+	-webkit-border-radius: 14px;
+	border-radius: 14px;
+	-moz-box-shadow: 1px 0px 8px #82a385;
+	-webkit-box-shadow: 1px 0px 8px #82a385;
+	box-shadow: 1px 0px 8px #82a385;
+	background-color: white;
+}
