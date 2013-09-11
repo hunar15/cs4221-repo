@@ -1,7 +1,7 @@
 #jsContainer 
 { 
 	position: fixed;
-	left : 230px;
+	left : 330px;
 	height: 80%;
 	width: 70%;
 	border:solid 2px #363636;
@@ -13,8 +13,10 @@
 #sidebar
 {
 	position: fixed;
-	width: 200px;
+	width: 300px;
 	background-color: blue;
+  color: white;
+  text-align: center;
 }
 .window 
 { 

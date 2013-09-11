@@ -1,0 +1,107 @@
+<!doctype html>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
+    <script type="text/javascript">
+	jsPlumb.bind("ready", function() {
+		//alert("Hello world!!");
+
+		jsPlumb.draggable($("#element1"),{
+			containment : "parent"
+		});
+		jsPlumb.draggable($("#element2"),{
+			containment : "parent"
+		});				
+		jsPlumb.Defaults.Container = $("#jsContainer");
+		
+		jsPlumb.connect({
+			source:"element1",
+			target:"element2",
+			paintStyle:{lineWidth:2,strokeStyle:'rgb(0,0,0)'},
+			anchor: ["Perimeter", { shape : "Square"} ],
+			endpoint : "Dot",
+			endpointStyle : { radius : 3},
+			connector : "Flowchart"
+		});
+
+	});
+    </script>
+    <link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
+    
+	<script type="text/javascript"> 
+	$(document).ready(function() { 
+		$('div.view').hide(); 
+		$('div.slide').click(function() { 
+			$(this).next('div.view').slideToggle('fast'); 
+			return false; });
+		}); 
+        </script>
+        
+</head>
+
+<body>
+    <div id="sidebar">
+      <h1>Toolbar</h1>
+      <h2> Creation </h2>
+      <div class="slide" style="cursor: pointer;">Add Regular Entity</div> 
+      <div class="view"> <form>Name: <input type="text" name="eName"> <input type="submit" value="Create"> </form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add Weak Entity</div>
+      <div class="view"> <form>Name: <input type="text" name="wName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add Reg. Relationship</div>
+      <div class="view"> <form>Name: <input type="text" name="rName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add ISA Relationship</div>
+      <div class="view"> <form>Name: <input type="text" name="ISArName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add OP Relationship</div>
+      <div class="view"> <form>Operation: <input type="text" name="OPrName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add Decomp Relationship</div>
+      <div class="view"> <form>Decomposition: <input type="text" name="DErName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add EX Relationship</div>
+      <div class="view"> <form>Name: <input type="text" name="EXrName"> <input type="submit" value="Create"></form></div>
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Add ID Relationship</div>
+      <div class="view"> <form>Name: <input type="text" name="IDrName"> <input type="submit" value="Create"></form></div>      
+      <p></p>
+      <p></p>
+      <h2> Deletion </h2>
+      <div class="slide" style="cursor: pointer;">Delete Entity:</div>
+      <div class="view"> 
+        <form>
+          <select name="delEntityddl">
+          <option value="Dog">Dog</option>
+          <option value="Hello">Hello</option>
+          </select><input type="submit" value="Delete">
+        </form></div> 
+      <p></p>
+      <div class="slide" style="cursor: pointer;">Delete Relationship:</div>
+      <div class="view"> 
+        <form>
+          <select name="delRelddl">
+          </select><input type="submit" value="Delete">
+        </form></div> 
+      <p></p>
+      <p></p>
+      <form> <input type="submit" value="Submit ER-Diagram"> </form> <p></p>
+    </div>
+    
+    <div id="jsContainer">
+        <div id="element1" class="window">
+            <strong>Hello</strong>
+        </div>
+        <div id="element2" class="window">
+            <strong>Dog</strong>
+        </div>
+
+    </div>
+</body>
+</html>
+
