@@ -24,9 +24,6 @@
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	background-color : #e8e8e8;
-	width: 300px;
-	background-color: blue;
-  	color: white;
   	text-align: center;
 }
 .window 
@@ -56,6 +53,14 @@
    -ms-transform: rotate(45deg);
    -o-transform: rotate(45deg);
    transform: rotate(45deg);
+}
+
+#sidebar li {
+	height: 120px;
+}
+#sidebar ul {
+	list-style-type: none;
+	padding : 0px;
 }
 .diamond {
    width: 80px; 

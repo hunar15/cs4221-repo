@@ -3,22 +3,58 @@
 <html>
 	<head>
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+		<link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
 		<script type="text/javascript">
 			
 			jsPlumb.bind("ready", function() {
 				//alert("Hello world!!");
+				$("#sidebar").accordion({
+					autoHeight: true,
+					heightStyle: "content",
+					collapsible: true
+				});
 				var i =4;
-				jsPlumb.draggable($("#element1"),{
-					containment : "parent"
+				$(".droppable1").draggable({
+					helper : "clone",
+					opacity : 0.5
 				});
-				jsPlumb.draggable($("#element2"),{
+
+				$("#jsContainer").droppable({
+			        accept: '.droppable1',
+			        tolerance : 'pointer',
+			        drop: function(event, ui) {
+			        	var cloned = $(ui.draggable).clone(false);
+			            //var cloned = "<div id=\"hun\" class=\"window container-drag\">"+
+						//		"<strong>Science, Bitch</strong></div>";
+			            
+			            //alert(cloned.hasClass("droppable1"));
+
+			            
+			            cloned.removeClass("droppable1");
+			            cloned.addClass("container-drag");
+			            cloned.attr("id","someRandom");
+			            
+			            //if draggable element requires some properties
+			            //popup a modal for those properties
+			            //else append the clone to the container
+			            $("#jsContainer").append(cloned);
+			            $("#someRandom").css("left", event.clientX - $(event.target).offset().left);
+                		$("#someRandom").css("top", event.clientY - $(event.target).offset().top);
+			            /*jsPlumb.draggable($("#someRandom"),{
+							containment : "parent"
+						});*/
+						$("#someRandom").draggable({
+							containment : "parent"
+						});
+						
+					}
+			    });
+				jsPlumb.draggable($(".container-drag"),{
 					containment : "parent"
-				});
-				jsPlumb.draggable($("#element3"),{
-					containment : "parent"
-				});			
+				});		
 				jsPlumb.Defaults.Container = $("#jsContainer");
 				
 				jsPlumb.addEndpoint($("#element1"), {
@@ -62,24 +98,57 @@
 			});
 			
 		</script>
-		<link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
+		
 	<head>
 
 	<body>
 		<div id="sidebar">
-			<h2>Sidebar</h2>
-			<button id="addEntity">Add one more entity</button>
-
+			<h2>Entities</h2>
+			<div>
+				<ul>
+					<li>
+						<div class="window droppable1">
+							<strong>Entity, Bitch</strong>
+						</div>
+					</li>
+				</ul>
+			</div>
+				
+			<h2>Relations</h2>
+			<div>
+				<ul>
+					<li>
+						<div class="diamond droppable1">
+							<div class="diamond-text">IS-A</div>
+						</div>
+					</li>
+					<li>
+						<div class="diamond droppable1">
+							<div class="diamond-text">Union</div>
+						</div>
+					</li>
+					<li>
+						<div class="diamond droppable1">
+							<div class="diamond-text">Intersection</div>
+						</div>
+					</li>
+					<li>
+						<div class="diamond droppable1">
+							<div class="diamond-text">Regular Relation</div>
+						</div>
+					</li>
+				</ul>
+			</div>
 		</div>
 		<div id="superContainer">
 			<div id="jsContainer">
-				<div id="element1" class="window">
+				<div id="element1" class="window container-drag">
 					<strong>Hello</strong>
 				</div>
-				<div id="element2" class="window">
+				<div id="element2" class="window container-drag">
 					<strong>Dog</strong>
 				</div>
-				<div id="element3" class="diamond">
+				<div id="element3" class="diamond container-drag">
 					<div class="diamond-text">Hello huanr huarn</div>
 				</div>
 
