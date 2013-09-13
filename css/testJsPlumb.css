@@ -1,4 +1,4 @@
-#jsContainer 
+#superContainer 
 { 
 	position: fixed;
 	left : 230px;
@@ -8,13 +8,22 @@
 	-moz-border-radius: 1px;
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
-	background-color : #e8e8e8: 
+	background-color : #e8e8e8;
+	overflow: scroll;
+	z-index: 2; 
+}
+#jsContainer {
+	height: 100%;
 }
 #sidebar
 {
 	position: fixed;
 	width: 200px;
-	background-color: blue;
+	border:solid 2px #363636;
+	-moz-border-radius: 1px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	background-color : #e8e8e8;
 }
 .window 
 { 
@@ -58,6 +67,11 @@
 	box-shadow: 1px 0px 8px #82a385;
 	background-color: white;
    /* Rotate */
+   -webkit-transform-origin: 50% 50%;
+   -moz-transform-origin: 50% 50%;
+   -ms-transform-origin: 50% 50%;
+   -o-transform-origin: 50% 50%;
+   transform-origin: 50% 50%;
    -webkit-transform: rotate(-45deg);
    -moz-transform: rotate(-45deg);
    -ms-transform: rotate(-45deg);
@@ -71,3 +85,9 @@
    transform-origin: 0 100%;*/
 }
 
+._jsPlumb_connector {
+	z-index: -1;
+}
+._jsPlumb_endpoint {
+	z-index: -1;
+}

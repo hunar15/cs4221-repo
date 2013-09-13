@@ -6,9 +6,10 @@
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
 		<script type="text/javascript">
+			
 			jsPlumb.bind("ready", function() {
 				//alert("Hello world!!");
-
+				var i =4;
 				jsPlumb.draggable($("#element1"),{
 					containment : "parent"
 				});
@@ -39,8 +40,27 @@
 				    endpointStyle : { radius : 3},
 				    connector : "Flowchart"
 				});
+				jsPlumb.connect({
+				    source:"element3",
+				    target:"element1",
+				    paintStyle:{lineWidth:2,strokeStyle:'rgb(0,0,0)'},
+				    anchor: ["Perimeter", { shape : "Diamond"} ],
+				    endpoint : "Dot",
+				    endpointStyle : { radius : 3},
+				    connector : "Flowchart"
+				});
+				$('#addEntity').click(function (e) {
+					var newEntity = "<div id=\"element"+i+"\" class=\"window\">"+
+								"<strong>Hello"+i+"</strong></div>";
 
+					$("#jsContainer").append((newEntity));
+					jsPlumb.draggable($("#element"+i),{
+						containment : "parent"
+					});
+					i++;	
+				});
 			});
+			
 		</script>
 		<link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
 	<head>
@@ -48,19 +68,24 @@
 	<body>
 		<div id="sidebar">
 			<h2>Sidebar</h2>
-		</div>
-		<div id="jsContainer">
-			<div id="element1" class="window">
-				<strong>Hello</strong>
-			</div>
-			<div id="element2" class="window">
-				<strong>Dog</strong>
-			</div>
-			<div id="element3" class="diamond">
-				<div class="diamond-text">Hello</div>
-			</div>
+			<button id="addEntity">Add one more entity</button>
 
 		</div>
+		<div id="superContainer">
+			<div id="jsContainer">
+				<div id="element1" class="window">
+					<strong>Hello</strong>
+				</div>
+				<div id="element2" class="window">
+					<strong>Dog</strong>
+				</div>
+				<div id="element3" class="diamond">
+					<div class="diamond-text">Hello huanr huarn</div>
+				</div>
+
+			</div>
+		</div>
+		
 	</body>
 </html>
 
