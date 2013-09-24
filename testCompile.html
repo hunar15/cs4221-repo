@@ -8,26 +8,7 @@
     <script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
     <script type="text/javascript">
 	jsPlumb.bind("ready", function() {
-		//alert("Hello world!!");
-
-		jsPlumb.draggable($("#element1"),{
-			containment : "parent"
-		});
-		jsPlumb.draggable($("#element2"),{
-			containment : "parent"
-		});				
-		jsPlumb.Defaults.Container = $("#jsContainer");
 		
-		jsPlumb.connect({
-			source:"element1",
-			target:"element2",
-			paintStyle:{lineWidth:2,strokeStyle:'rgb(0,0,0)'},
-			anchor: ["Perimeter", { shape : "Square"} ],
-			endpoint : "Dot",
-			endpointStyle : { radius : 3},
-			connector : "Flowchart"
-		});
-
 	});
     </script>
     <link href="css/testJsPlumb.css" rel="stylesheet" type="text/css">
@@ -41,6 +22,22 @@
 		}); 
         </script>
         
+  <script>
+  function addEntity()
+  {
+	  var eName = document.getElementById('eName').value;
+	  var canvas = document.getElementById('jsContainer')
+	  var newEntity = document.createElement("div");
+	  newEntity.id = eName;
+	  newEntity.className = $('.window')
+	  newEntity.textContent = eName;
+	  canvas.appendChild(newEntity);
+	  
+	  jsPlumb.Defaults.Container = $('#jsContainer');
+	  jsPlumb.draggable(eName);
+  }
+  </script>
+        
 </head>
 
 <body>
@@ -48,7 +45,7 @@
       <h1>Toolbar</h1>
       <h2> Creation </h2>
       <div class="slide" style="cursor: pointer;">Add Regular Entity</div> 
-      <div class="view"> <form>Name: <input type="text" name="eName"> <input type="submit" value="Create"> </form></div>
+      <div class="view"> <form>Name: <input type="text" name="eName" id="eName"> <button type="button" id="addEntity_bt" onClick="addEntity()">Create</button> </form></div>
       <p></p>
       <div class="slide" style="cursor: pointer;">Add Weak Entity</div>
       <div class="view"> <form>Name: <input type="text" name="wName"> <input type="submit" value="Create"></form></div>
@@ -94,12 +91,6 @@
     </div>
     
     <div id="jsContainer">
-        <div id="element1" class="window">
-            <strong>Hello</strong>
-        </div>
-        <div id="element2" class="window">
-            <strong>Dog</strong>
-        </div>
 
     </div>
 </body>
