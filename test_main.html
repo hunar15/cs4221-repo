@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="us">
+<head>
+	<meta charset="utf-8">
+	<title>DBMod - ER-Diagram Case Tool 4 U</title>
+	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
+	<script src="js/jquery-1.9.1.js"></script>
+	<script src="js/jquery-ui-1.10.3.custom.js"></script>
+	<script>
+	$(function() {	
+        var parentDivs = $('#nestedAccordion div'),
+        childDivs = $('#nestedAccordion h3').siblings('div');
+
+        $('#nestedAccordion h2').click(function(){
+            parentDivs.slideUp();
+            if($(this).next().is(':hidden')){
+                $(this).next().slideDown();
+            }else{
+                $(this).next().slideUp();
+            }
+        });
+        $('#nestedAccordion h3').click(function(){
+            childDivs.slideUp();
+            if($(this).next().is(':hidden')){
+                $(this).next().slideDown();
+            }else{
+                $(this).next().slideUp();
+            }
+        });
+        $( "#nestedAccordion" ).accordion({ collapsible: true, activate: false});
+        
+        $( "#button" ).button();
+        $( "#radioset" ).buttonset();		
+        $( "#tabs" ).tabs();
+        // Hover states on the static widgets
+        $( "#dialog-link, #icons li" ).hover(
+            function() {
+                $( this ).addClass( "ui-state-hover" );
+            },
+            function() {
+                $( this ).removeClass( "ui-state-hover" );
+            }
+        );
+        });
+	</script>
+	<style>
+	body{
+		font: 62.5% "Trebuchet MS", sans-serif;
+		margin: 50px;
+	}
+	.demoHeaders {
+		margin-top: 2em;
+	}
+	#dialog-link {
+		padding: .4em 1em .4em 20px;
+		text-decoration: none;
+		position: relative;
+	}
+	#dialog-link span.ui-icon {
+		margin: 0 5px 0 0;
+		position: absolute;
+		left: .2em;
+		top: 50%;
+		margin-top: -8px;
+	}
+	#icons {
+		margin: 0;
+		padding: 0;
+	}
+	#icons li {
+		margin: 2px;
+		position: relative;
+		padding: 4px 0;
+		cursor: pointer;
+		float: left;
+		list-style: none;
+	}
+	#icons span.ui-icon {
+		float: left;
+		margin: 0 4px;
+	}
+	.fakewindowcontain .ui-widget-overlay {
+		position: absolute;
+	}
+    #sidebar {
+        float: left;
+        width: 20%;
+    }
+    #canvas {
+        float: right;
+        width: 75%;
+        border-style: double;
+        height: 800px;
+    }
+	</style>
+</head>
+<body>
+
+<h1>Welcome to DBMod!</h1>
+<div class="ui-widget">
+	<p>Design your very own ER-diagrams and we will verify them for you!</p>
+</div>
+<div id="content">
+    <div id="sidebar">
+        <div id="nestedAccordion">
+        <h2>ADD</h2>
+            <div>
+                <h3>Regular Entity</h3>
+                <div>Name: <input type="text" name="eName" id="eName"></div>
+                <h3>Weak Entity</h3>
+                <div>Phasellus mattis tincidunt nibh.</div>
+            </div>
+        <h2>DELETE</h2>
+            <div>
+                <h3>Entity</h3>
+                <div>Which one? </div>
+            </div>
+        </div>
+    </div>
+    <div id="canvas">
+    
+    </div>
+</div>
+</body>
+</html>
