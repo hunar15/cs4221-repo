@@ -32,6 +32,7 @@
         $( "#button" ).button();
         $( "#radioset" ).buttonset();		
         $( "#tabs" ).tabs();
+        $( document ).tooltip();
         // Hover states on the static widgets
         $( "#dialog-link, #icons li" ).hover(
             function() {
@@ -46,7 +47,8 @@
 	<style>
 	body{
 		font: 62.5% "Trebuchet MS", sans-serif;
-		margin: 50px;
+		margin: 20px;
+    background-color: #555555;
 	}
 	.demoHeaders {
 		margin-top: 2em;
@@ -91,24 +93,47 @@
         width: 75%;
         border-style: double;
         height: 800px;
+        background-color: white;
     }
 	</style>
 </head>
 <body>
-
-<h1>Welcome to DBMod!</h1>
-<div class="ui-widget">
-	<p>Design your very own ER-diagrams and we will verify them for you!</p>
-</div>
+<h1 style="color:white">Welcome to DBMod!</h1>
+<p style="color:white">Design your very own ER-diagrams and we will verify them for you!</p>
 <div id="content">
     <div id="sidebar">
         <div id="nestedAccordion">
-        <h2>ADD</h2>
+        <h2>ADD ENTITY</h2>
             <div>
                 <h3>Regular Entity</h3>
-                <div>Name: <input type="text" name="eName" id="eName"></div>
+                <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity"><button>Add it!</button></div>
                 <h3>Weak Entity</h3>
-                <div>Phasellus mattis tincidunt nibh.</div>
+                <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity"><button>Add it!</button></div>
+                <h3>Entity Attribute</h3>
+                <div>
+                <input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
+                <p>to Entity</p> 
+                <input type="text" name="Link-EName" id="Link-EName"><button>Add it!</button></div>                
+            </div>
+        <h2>ADD RELATIONSHIP</h2>
+            <div>
+                <h3>Regular Relationship</h3>
+                <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship"><button>Add it!</button></div>
+                <h3>ISA Relationship</h3>
+                <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship"><button>Add it!</button></div>
+                <h3>OP Relationship</h3>
+                <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship"><button>Add it!</button></div>
+                <h3>Decomp Relationship</h3>
+                <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship"><button>Add it!</button></div>
+                <h3>EX Relationship</h3>
+                <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship"><button>Add it!</button></div>
+                <h3>ID Relationship</h3>
+                <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship"><button>Add it!</button></div>
+                <h3>Relationship Attribute</h3>
+                <div>
+                <input type="text" name="RAttrName" id="RAttrName" title="Name of Attribute">
+                <p>to Entity</p> 
+                <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
             </div>
         <h2>DELETE</h2>
             <div>
