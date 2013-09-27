@@ -1,150 +1,145 @@
 <!doctype html>
 <html lang="us">
 <head>
-	<meta charset="utf-8">
-	<title>DBMod - ER-Diagram Case Tool 4 U</title>
-	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
-	<script src="js/jquery-1.9.1.js"></script>
-	<script src="js/jquery-ui-1.10.3.custom.js"></script>
-	<script>
-	$(function() {	
-        var parentDivs = $('#nestedAccordion div'),
-        childDivs = $('#nestedAccordion h3').siblings('div');
+<meta charset="utf-8">
+<title>DBMod - ER-Diagram Case Tool 4 U</title>
+<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
+<link href="css/dbmod.css" rel="stylesheet">
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/jquery-ui-1.10.3.custom.js"></script>
+<script>
+$(function() {
+// Storage variable
+var allEntities = [];
+var allRelationships = [];
 
-        $('#nestedAccordion h2').click(function(){
-            parentDivs.slideUp();
-            if($(this).next().is(':hidden')){
-                $(this).next().slideDown();
-            }else{
-                $(this).next().slideUp();
-            }
-        });
-        $('#nestedAccordion h3').click(function(){
-            childDivs.slideUp();
-            if($(this).next().is(':hidden')){
-                $(this).next().slideDown();
-            }else{
-                $(this).next().slideUp();
-            }
-        });
-        $( "#nestedAccordion" ).accordion({ collapsible: true, activate: false});
-        
-        $( "#button" ).button();
-        $( "#radioset" ).buttonset();		
-        $( "#tabs" ).tabs();
-        $( document ).tooltip();
-        // Hover states on the static widgets
-        $( "#dialog-link, #icons li" ).hover(
-            function() {
-                $( this ).addClass( "ui-state-hover" );
-            },
-            function() {
-                $( this ).removeClass( "ui-state-hover" );
-            }
-        );
-        });
-	</script>
-	<style>
-	body{
-		font: 62.5% "Trebuchet MS", sans-serif;
-		margin: 20px;
-    background-color: #555555;
-	}
-	.demoHeaders {
-		margin-top: 2em;
-	}
-	#dialog-link {
-		padding: .4em 1em .4em 20px;
-		text-decoration: none;
-		position: relative;
-	}
-	#dialog-link span.ui-icon {
-		margin: 0 5px 0 0;
-		position: absolute;
-		left: .2em;
-		top: 50%;
-		margin-top: -8px;
-	}
-	#icons {
-		margin: 0;
-		padding: 0;
-	}
-	#icons li {
-		margin: 2px;
-		position: relative;
-		padding: 4px 0;
-		cursor: pointer;
-		float: left;
-		list-style: none;
-	}
-	#icons span.ui-icon {
-		float: left;
-		margin: 0 4px;
-	}
-	.fakewindowcontain .ui-widget-overlay {
-		position: absolute;
-	}
-    #sidebar {
-        float: left;
-        width: 20%;
+// Functions to check inputs
+function checkInputVal(val,array){
+if(val == ""){return 0}
+else{return ($.inArray(val,array))}
+}
+
+// Nested Accordion code for the side tool-bar
+var parentDivs = $('#nestedAccordion div');
+var childDivs = $('#nestedAccordion h3').siblings('div');
+$('#nestedAccordion h2').click(function(){
+parentDivs.slideUp();
+if($(this).next().is(':hidden')){
+    $(this).next().slideDown();
+}else{
+    $(this).next().slideUp();
+}
+});
+$('#nestedAccordion h3').click(function(){
+childDivs.slideUp();
+if($(this).next().is(':hidden')){
+    $(this).next().slideDown();
+}else{
+    $(this).next().slideUp();
+}
+});
+$( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+// Converting all the buttons to the animated one
+$('.a_button').button();
+
+// Adding entities
+$('#Add-REntity').click(function(){
+if(checkInputVal($("#REName")[0].value,allEntities) == -1){
+    allEntities.push($("#REName")[0].value);
+    alert(allEntities);
+    $( "#REName" )[0].value = "";
+    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});}
+else{$( "#err-dialog" ).dialog();}
+});
+$('#Add-WEntity').click(function(){
+if(checkInputVal($("#WEName")[0].value,allEntities) == -1){
+    allEntities.push($("#WEName")[0].value);
+    alert(allEntities);
+    $( "#WEName" )[0].value = "";
+    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});}
+else{$( "#err-dialog" ).dialog();}
+});
+
+$( "#AttrTypeSet" ).buttonset();
+$( document ).tooltip();
+// Hover states on the static widgets
+$( "#dialog-link, #icons li" ).hover(
+    function() {
+    $( this ).addClass( "ui-state-hover" );
+    },
+    function() {
+    $( this ).removeClass( "ui-state-hover" );
     }
-    #canvas {
-        float: right;
-        width: 75%;
-        border-style: double;
-        height: 800px;
-        background-color: white;
-    }
-	</style>
+);
+$( "#Add-Attribute-Entity" ).click(function() {
+    $( "#dialog" ).dialog();
+});
+
+});</script>
 </head>
+
 <body>
-<h1 style="color:white">Welcome to DBMod!</h1>
-<p style="color:white">Design your very own ER-diagrams and we will verify them for you!</p>
-<div id="content">
-    <div id="sidebar">
-        <div id="nestedAccordion">
-        <h2>ADD ENTITY</h2>
+    <h1 style="color:white">Welcome to DBMod!</h1>
+    <p style="color:white">Design your very own ER-diagrams and we will verify them for you!</p>
+    <div id="content">
+        <div id="sidebar">
+            <div id="nestedAccordion">
+            <h2>ADD ENTITY</h2>
             <div>
-                <h3>Regular Entity</h3>
-                <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity"><button>Add it!</button></div>
-                <h3>Weak Entity</h3>
-                <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity"><button>Add it!</button></div>
-                <h3>Entity Attribute</h3>
-                <div>
-                <input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
-                <p>to Entity</p> 
-                <input type="text" name="Link-EName" id="Link-EName"><button>Add it!</button></div>                
+            <h3>Regular Entity</h3>
+                <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity">
+                <button id="Add-REntity" class="a_button">Add it!</button></div>
+            <h3>Weak Entity</h3>
+                <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity">
+                <button id="Add-WEntity" class="a_button">Add it!</button></div>
+            <h3>Entity Attribute</h3>
+                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
+                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>                
             </div>
-        <h2>ADD RELATIONSHIP</h2>
+            <h2>ADD RELATIONSHIP</h2>
             <div>
-                <h3>Regular Relationship</h3>
-                <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship"><button>Add it!</button></div>
-                <h3>ISA Relationship</h3>
-                <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship"><button>Add it!</button></div>
-                <h3>OP Relationship</h3>
-                <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship"><button>Add it!</button></div>
-                <h3>Decomp Relationship</h3>
-                <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship"><button>Add it!</button></div>
-                <h3>EX Relationship</h3>
-                <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship"><button>Add it!</button></div>
-                <h3>ID Relationship</h3>
-                <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship"><button>Add it!</button></div>
-                <h3>Relationship Attribute</h3>
-                <div>
-                <input type="text" name="RAttrName" id="RAttrName" title="Name of Attribute">
-                <p>to Entity</p> 
-                <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
+            <h3>Regular Relationship</h3>
+            <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>ISA Relationship</h3>
+            <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>OP Relationship</h3>
+            <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>Decomp Relationship</h3>
+            <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>EX Relationship</h3>
+            <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>ID Relationship</h3>
+            <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship">
+            <button class="a_button">Add it!</button></div>
+            <h3>Relationship Attribute</h3>
+            <div>
+            <input type="text" name="RAttrName" id="RAttrName" title="Name of Attribute">
+            <p>to Entity</p>
+            <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
             </div>
-        <h2>DELETE</h2>
+            <h2>DELETE</h2>
             <div>
-                <h3>Entity</h3>
-                <div>Which one? </div>
+            <h3>Entity</h3>
+            <div>Which one? </div>
+            </div>
             </div>
         </div>
+        <div id="canvas">
+
+        </div>
     </div>
-    <div id="canvas">
-    
+    <div id="dialog" title="Attach to?" style="display:none;">
     </div>
-</div>
+    <div id="add-entity-dialog" title="Added Entity" style="display:none;">
+    </div>
+    <div id="err-dialog" title="Error!" style="display:none;">
+    <p>Please check your input!</p>
+    </div>
 </body>
 </html>
