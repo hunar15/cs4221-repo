@@ -7,36 +7,173 @@
 <link href="css/dbmod.css" rel="stylesheet">
 <script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
+<script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
 $(function() {
-// Storage variable
-var allEntities = [];
-var allRelationships = [];
+    // Storage variable
+    var allEntities = [];
+    var allRelationships = [];
+    var defaultConnectionPaintStyle = {lineWidth:2,strokeStyle:'rgb(0,0,0)'},
+        defaultOnHoverConnectionPaintStyle = {lineWidth:5,strokeStyle:'rgb(143,214,0)'}
+    var defaultEndpointProperties = { src : "img/littledot.png",
+                                   cssClass : "endpoint-entity-hover", 
+                                   hoverClass: "endpoint-hover" };
+    var hoverOverEndpointClass = "endpoint-hover",
+        hoverOverEntityClass = "endpoint-entity-hover",
+        noHoverOverEntityClass = "endpoint-no-display";
+    jsPlumb.Defaults.Container = $("#canvas");
+    jsPlumb.Defaults.Connector = "Straight";
+    jsPlumb.Defaults.PaintStyle = defaultConnectionPaintStyle;
+    
+    // Functions to check inputs
+    function checkInputVal(val,array){
+        if(val == "") {
+            return 0;
+        } else {
+            return ($.inArray(val,array));
+        }
+    }
 
-// Functions to check inputs
-function checkInputVal(val,array){
-if(val == ""){return 0}
-else{return ($.inArray(val,array))}
-}
+//Add connection listener
+jsPlumb.bind('beforeDrop', function (info) {
+    /*
+    Structure of "info" object
+        {
+          connection         :     the new Connection.  you can register listeners on this etc.
+          sourceId         :    id of the source element in the Connection
+          targetId        :    id of the target element in the Connection
+          source        :    the source element in the Connection
+          target        :    the target element in the Connection
+          sourceEndpoint    :    the source Endpoint in the Connection
+          targetEndpoint    :    the targetEndpoint in the Connection
+        }
+    */
+    //alert(JSON.stringify(info.sourceId));
+    var QsourceObj = $("#"+info.sourceId),
+        QtargetObj = $("#"+info.targetId);
 
-// Nested Accordion code for the side tool-bar
-var parentDivs = $('#nestedAccordion div');
-var childDivs = $('#nestedAccordion h3').siblings('div');
+    if(!hasReachedConnectionLimit(QsourceObj) && !hasReachedConnectionLimit(QtargetObj)) {
+
+        if(isEntityType(QsourceObj) && isEntityType(QtargetObj)) {
+            alert("Cannot directly join 2 entity types");
+            return false;
+        } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
+                    (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
+            jsPlumb.connect({
+                source: QsourceObj,
+                target: QtargetObj,
+                paintStyle:defaultConnectionPaintStyle,
+                hoverPaintStyle: defaultOnHoverConnectionPaintStyle
+            });
+            return false;
+        } else if( (isEntityType(QsourceObj) && isAttributeType(QtargetObj)) ||
+                   (isEntityType(QtargetObj) && isAttributeType(QsourceObj))) {
+            //TODO: Arrows overlays work only when dragging from entity to attribute
+            
+            var attributeEndpoint, newConnection, overlayConfig,
+                isTargetAttributeType = isAttributeType(QtargetObj),
+                toAddLater = null;
+
+            //var arrowDirection, arrowLocation;
+            var arrowWidth = 10,
+                arrowLength = 10;
+
+            if(confirm("Is attribute 1 - 1 ?")) {
+                overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+            } else if (confirm("Is attribute 1 - m ?")) {
+                if (isTargetAttributeType) {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : -11, direction: 1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                } else {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                    toAddLater = ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}];
+                                //[["PlainArrow", { width : arrowWidth, length: arrowLength, location : 22, direction:1}],
+                                //["PlainArrow", { width : arrowWidth, length: arrowLength, location : 11, direction: 1}]];
+                                //["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
+                }
+            } else if (confirm("Is attribute m - 1 ?")) {
+                if (isTargetAttributeType) {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
+                } else {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                }
+            } else {
+                if (isTargetAttributeType) {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : -11, direction: 1}]];
+                } else {
+                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 22, direction: -1}]];
+                }
+            }
+            if(isTargetAttributeType) {
+                attributeEndpoint = jsPlumb.selectEndpoints({ source: QtargetObj});
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Rectangle"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : overlayConfig
+                });
+            } else {
+                attributeEndpoint = jsPlumb.selectEndpoints({ source: QsourceObj});
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Ellipse"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : overlayConfig
+                });
+            }
+            attributeEndpoint.setEnabled(false);
+            newConnection.bind('click', function (connection) {
+                var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                if(deleteConnection) {
+                    if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
+                        attributeEndpoint.setEnabled(true);
+                    }
+
+                    jsPlumb.detach(connection);
+                }
+            });
+            return false;
+        }
+    } else {
+        alert("One of the connection elements has reached its connection limit!!");
+        return false;
+    }
+
+    
+});
+    // Nested Accordion code for the side tool-bar
+    var parentDivs = $('#nestedAccordion div');
+    var childDivs = $('#nestedAccordion h3').siblings('div');
 $('#nestedAccordion h2').click(function(){
-parentDivs.slideUp();
-if($(this).next().is(':hidden')){
-    $(this).next().slideDown();
-}else{
-    $(this).next().slideUp();
-}
+    parentDivs.slideUp();
+    if($(this).next().is(':hidden')) {
+        $(this).next().slideDown();
+    } else {
+        $(this).next().slideUp();
+    }
 });
 $('#nestedAccordion h3').click(function(){
-childDivs.slideUp();
-if($(this).next().is(':hidden')){
-    $(this).next().slideDown();
-}else{
-    $(this).next().slideUp();
-}
+    childDivs.slideUp();
+    if($(this).next().is(':hidden')){
+        $(this).next().slideDown();
+    } else {
+        $(this).next().slideUp();
+    }
 });
 $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
@@ -45,21 +182,108 @@ $('.a_button').button();
 
 // Adding entities
 $('#Add-REntity').click(function(){
-if(checkInputVal($("#REName")[0].value,allEntities) == -1){
-    allEntities.push($("#REName")[0].value);
-    $( "#REName" )[0].value = "";
-    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});}
-    
-else{$( "#err-dialog" ).dialog();}
+    if(checkInputVal($("#REName")[0].value,allEntities) == -1)  {
+        allEntities.push($("#REName")[0].value);
+        var entityName = $("#REName")[0].value,
+            entitySuffix = "-entity",
+            entityID = "#"+entityName+entitySuffix;
+
+        $("#canvas").append(createEntityWithName(entityName));
+        $( "#REName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        jsPlumb.addEndpoint($(entityID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            anchor: "Right",
+            containment: entityName+entitySuffix,
+            ConnectionsDetachable:false,
+            isSource: true
+            //isTarget : true
+        });
+        jsPlumb.makeTarget($(entityID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Rectangle"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+        jsPlumb.draggable(entityName+entitySuffix,{
+            containment : "parent"
+        });
+        
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
 });
 $('#Add-WEntity').click(function(){
-if(checkInputVal($("#WEName")[0].value,allEntities) == -1){
-    allEntities.push($("#WEName")[0].value);
-    $( "#WEName" )[0].value = "";
-    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});}
-else{$( "#err-dialog" ).dialog();}
+    if(checkInputVal($("#WEName")[0].value,allEntities) == -1) {
+        var weakEntityName = $("#WEName")[0].value
+            weakEntitySuffix = "-weak-entity",
+            weakEntityID = "#"+weakEntityName+weakEntitySuffix;
+        allEntities.push(weakEntityName);
+
+        $("#canvas").append(createWeakEntityWithName(weakEntityName));
+        $( "#WEName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        var addedEndpoint = jsPlumb.addEndpoint($(weakEntityID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            anchor: "Right",
+            containment: weakEntityName+weakEntitySuffix,
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+        jsPlumb.makeTarget($(weakEntityID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Rectangle"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+        jsPlumb.draggable(weakEntityName+weakEntitySuffix,{
+            containment : "parent"
+        });
+
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
 });
 
+//adding relationships
+$('#Add-RRName').click(function(){
+    if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  {
+        allRelationships.push($("#RRName")[0].value);
+        var relationshipName = $("#RRName")[0].value,
+            relationshipSuffix = "-relationship",
+            relationshipID = "#"+relationshipName+relationshipSuffix;
+
+        $("#canvas").append(createRelationshipWithName(relationshipName));
+        $( "#RRName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        jsPlumb.addEndpoint($(relationshipID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            //anchor: ["Perimeter", { shape : "Rectangle"} ],
+            anchor: "Right",
+            containment: relationshipName+relationshipSuffix,
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+        jsPlumb.makeTarget($(relationshipID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Diamond"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+
+        jsPlumb.draggable(relationshipName+relationshipSuffix,{
+            containment : "parent"
+        });
+        
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
+});
 $( "#AttrTypeSet" ).buttonset();
 $( document ).tooltip();
 // Hover states on the static widgets
@@ -72,10 +296,41 @@ $( "#dialog-link, #icons li" ).hover(
     }
 );
 $( "#Add-Attribute-Entity" ).click(function() {
-var ops= ['qwerty','asdfgh'];
-$( '#tags' ).autocomplete({source: ops});
-$( "#dialog" ).dialog();
+    /*var ops= ['qwerty','asdfgh'];
+    $( '#tags' ).autocomplete({source: ops});
+    $( "#dialog" ).dialog();*/
+
+    var attributeName = $("#EAttrName")[0].value,
+        attributeSuffix = "-attribute",
+        attributeID = "#"+attributeName+attributeSuffix;
+
+    $("#canvas").append(createAttributeWithName(attributeName));
+
+    $( "#EAttrName" )[0].value = "";
+    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+    jsPlumb.addEndpoint($(attributeID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            anchor: "Right",
+            containment: attributeName+attributeSuffix,
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+    jsPlumb.makeTarget($(attributeID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Ellipse"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight",
+            maxConnections : 1
+        });
+    jsPlumb.draggable(attributeName+attributeSuffix,{
+        containment : "parent"
+    });
 });
+
+
+
 
 });</script>
 </head>
@@ -105,10 +360,10 @@ $( "#dialog" ).dialog();
             <div>
             <h3 class="subheader">Regular Relationship</h3>
             <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
-            <button class="a_button">Add it!</button></div>
+            <button id="Add-RRName" class="a_button">Add it!</button></div>
             <h3 class="subheader">ISA Relationship</h3>
             <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship">
-            <button class="a_button">Add it!</button></div>
+            <button id="Add-ISARName" class="a_button">Add it!</button></div>
             <h3 class="subheader">OP Relationship</h3>
             <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship">
             <button class="a_button">Add it!</button></div>

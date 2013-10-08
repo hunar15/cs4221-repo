@@ -26,7 +26,8 @@
 			        accept: '.droppable1',
 			        tolerance : 'pointer',
 			        drop: function(event, ui) {
-			        	var cloned = $(ui.draggable).clone(false);
+			        	var cloned = $(ui.draggable).clone(false).removeClass("ui-draggable");
+			        	// I FEELZ THE POWERZ
 			            //var cloned = "<div id=\"hun\" class=\"window container-drag\">"+
 						//		"<strong>Science, Bitch</strong></div>";
 			            
@@ -46,7 +47,13 @@
 			            /*jsPlumb.draggable($("#someRandom"),{
 							containment : "parent"
 						});*/
-						$("#someRandom").draggable({
+						jsPlumb.addEndpoint("someRandom", {
+							endpoint : "Dot",
+							anchor: ["Perimeter", { shape : "Square"} ],
+							container: "someRandom"
+
+						});
+						jsPlumb.draggable("someRandom",{
 							containment : "parent"
 						});
 						
@@ -71,7 +78,7 @@
 				    source:"element1",
 				    target:"element2",
 				    paintStyle:{lineWidth:2,strokeStyle:'rgb(0,0,0)'},
-				    anchor: ["Perimeter", { shape : "Square"} ],
+				    anchor: ["Perimeter", { shape : "Diamond"} ],
 				    endpoint : "Dot",
 				    endpointStyle : { radius : 3},
 				    connector : "Flowchart"
@@ -89,9 +96,17 @@
 					var newEntity = "<div id=\"element"+i+"\" class=\"window\">"+
 								"<strong>Hello"+i+"</strong></div>";
 
+					
+					
 					$("#jsContainer").append((newEntity));
+
 					jsPlumb.draggable($("#element"+i),{
 						containment : "parent"
+					});
+					jsPlumb.addEndpoint("element"+i, {
+						endpoint : "Dot",
+						anchor: ["Perimeter", { shape : "Square"} ],
+						container: "element"+i
 					});
 					i++;	
 				});
