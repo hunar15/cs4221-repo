@@ -87,6 +87,7 @@ font-size: 15px;
 .inner-text
 {
 	font-size: 12px;
+    text-align:center;
 }
 .entity .connector-container
 {
@@ -109,7 +110,7 @@ font-size: 15px;
 	box-shadow: 1px 0px 8px #82a385;
 	background-color: white;
 }
-.relationship
+/*.relationship //
 {
 	padding: 10px;
 	position: absolute;
@@ -122,8 +123,37 @@ font-size: 15px;
 	box-shadow: 1px 0px 8px #82a385;
 	background-color: white;
 	color: blue;
+}*/
+/*.relationship
+{
+    width: 0px; 
+    height: 0px;
+    border: 20px solid transparent; 
+    border-bottom-color: lightblue; 
+    position: relative; 
+    top: 0px;
+    background-color: white;
 }
-
+.relationship:after
+{
+    content: "";
+    position: absolute; 
+    left: -20px; 
+    top: 19px; 
+    width: 0; 
+    height: 0; 
+    border: 20px solid transparent; 
+    border-top-color: lightblue;
+}*/
+.relationship
+{
+	background-image:url(../img/diamond.gif);
+	position:absolute;
+	width:80px;
+	height:80px;
+    line-height:80px;
+    vertical-align:middle;
+}
 .attribute
 {
 	position: absolute;
