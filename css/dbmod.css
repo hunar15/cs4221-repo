@@ -84,22 +84,6 @@ font-size: 15px;
 	box-shadow: 1px 0px 8px #82a385;
 	background-color: white;
 }
-
-.cardinality 
-{ 
-	/*width: 80px;
-	height: 80px;*/
-	padding: 5px;
-	position: absolute;
-	border:solid 1px #4A6650;
-	-moz-border-radius: 2px;
-	-webkit-border-radius: 2px;
-	border-radius: 2px;
-	-moz-box-shadow: 1px 0px 8px #82a385;
-	-webkit-box-shadow: 1px 0px 8px #82a385;
-	box-shadow: 1px 0px 8px #82a385;
-	background-color: white;
-}
 .inner-text
 {
 	font-size: 12px;
@@ -140,29 +124,30 @@ font-size: 15px;
 	background-color: white;
 	color: blue;
 }*/
-.relationship, .isa-relationship, .op-relationship, .dc-relationship
+/*.relationship
+{
+    width: 0px; 
+    height: 0px;
+    border: 20px solid transparent; 
+    border-bottom-color: lightblue; 
+    position: relative; 
+    top: 0px;
+    background-color: white;
+}
+.relationship:after
+{
+    content: "";
+    position: absolute; 
+    left: -20px; 
+    top: 19px; 
+    width: 0; 
+    height: 0; 
+    border: 20px solid transparent; 
+    border-top-color: lightblue;
+}*/
+.relationship
 {
 	background-image:url(../img/diamond.gif);
-	position:absolute;
-	width:80px;
-	height:80px;
-    line-height:80px;
-    vertical-align:middle;
-}
-
-.ex-relationship
-{
-	background-image:url(../img/diamond-ex.gif);
-	position:absolute;
-	width:80px;
-	height:80px;
-    line-height:80px;
-    vertical-align:middle;
-}
-
-.id-relationship
-{
-	background-image:url(../img/diamond-id.gif);
 	position:absolute;
 	width:80px;
 	height:80px;

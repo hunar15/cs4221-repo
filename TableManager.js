@@ -141,6 +141,8 @@ function addAttribute(table_name, object)
 	setCookie("attribute", JSON.stringify(attribute_JSON)); 
 }
 
+
+
 function deleteAttribute(table_name, attribute_name)
 {
 	if (!attribute_name) return;
