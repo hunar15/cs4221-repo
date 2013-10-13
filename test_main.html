@@ -7,6 +7,8 @@
 <link href="css/dbmod.css" rel="stylesheet">
 <script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
+<script src="js/contextMenu.js"></script>
+<script src="js/contextMenu.min.js"></script>
 <script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
@@ -182,8 +184,14 @@ $('.a_button').button();
 
 // Adding entities
 $('#Add-REntity').click(function(){
-    $("#REName")[0].value = $("#REName")[0].value.replace(" ","_");
-    if(checkInputVal($("#REName")[0].value,allEntities) == -1)  {
+    if($("#REName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else if(checkInputVal($("#REName")[0].value,allEntities) == -1)  {
+        $("#REName")[0].value = $("#REName")[0].value.trim();
+        $("#REName")[0].value = $("#REName")[0].value.replace(" ","-");
         allEntities.push($("#REName")[0].value);
         var entityName = $("#REName")[0].value,
             entitySuffix = "-entity",
@@ -211,13 +219,22 @@ $('#Add-REntity').click(function(){
             containment : "parent"
         });
         
-    } else {
+    } else 
+    {
+        $( "#err-dialog" ).text("Already contains an entity of the same name!");
         $( "#err-dialog" ).dialog();
     }
 });
 $('#Add-WEntity').click(function(){
-    $("#WEName")[0].value = $("#WEName")[0].value.replace(" ","_");
-    if(checkInputVal($("#WEName")[0].value,allEntities) == -1) {
+    if($("#WEName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }    
+    else if(checkInputVal($("#WEName")[0].value,allEntities) == -1) 
+    {
+        $("#WEName")[0].value = $("#WEName")[0].value.trim();
+        $("#WEName")[0].value = $("#WEName")[0].value.replace(" ","-");
         var weakEntityName = $("#WEName")[0].value
             weakEntitySuffix = "-weak-entity",
             weakEntityID = "#"+weakEntityName+weakEntitySuffix;
@@ -245,15 +262,24 @@ $('#Add-WEntity').click(function(){
             containment : "parent"
         });
 
-    } else {
+    } else 
+    {
+        $( "#err-dialog" ).text("Already contains an entity of the same name!");
         $( "#err-dialog" ).dialog();
     }
 });
 
 //adding relationships
 $('#Add-RRName').click(function(){
-    $("#RRName")[0].value = $("#RRName")[0].value.replace(" ","_");
-    if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  {
+    if($("#RRName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  
+    {   
+        $("#RRName")[0].value = $("#RRName")[0].value.trim();
+        $("#RRName")[0].value = $("#RRName")[0].value.replace(" ","-");
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,
             relationshipSuffix = "-relationship",
@@ -302,37 +328,52 @@ $( "#Add-Attribute-Entity" ).click(function() {
     /*var ops= ['qwerty','asdfgh'];
     $( '#tags' ).autocomplete({source: ops});
     $( "#dialog" ).dialog();*/
+    if($("#EAttrName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else
+    {
+        var attributeName = $("#EAttrName")[0].value.trim(),
+            attributeSuffix = "-attribute",
+            attributeID = "#"+attributeName+attributeSuffix;
 
-    var attributeName = $("#EAttrName")[0].value,
-        attributeSuffix = "-attribute",
-        attributeID = "#"+attributeName+attributeSuffix;
+        attributeName = attributeName.replace(" ","-");
+        $("#canvas").append(createAttributeWithName(attributeName));
 
-    $("#canvas").append(createAttributeWithName(attributeName));
+        $( "#EAttrName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
-    $( "#EAttrName" )[0].value = "";
-    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+        jsPlumb.addEndpoint($(attributeID), {
+                endpoint : ["Image", defaultEndpointProperties],
+                anchor: "Right",
+                containment: attributeName+attributeSuffix,
+                ConnectionsDetachable:false,
+                isSource: true
+            });
 
-    jsPlumb.addEndpoint($(attributeID), {
-            endpoint : ["Image", defaultEndpointProperties],
-            anchor: "Right",
-            containment: attributeName+attributeSuffix,
-            ConnectionsDetachable:false,
-            isSource: true
+        jsPlumb.makeTarget($(attributeID), {
+                isTarget : true,
+                anchor: ["Perimeter", { shape : "Ellipse"} ],
+                endpoint : ["Dot", { radius : 1}],
+                connector : "Straight",
+                maxConnections : 1
+            });
+        jsPlumb.draggable(attributeName+attributeSuffix,{
+            containment : "parent"
         });
-
-    jsPlumb.makeTarget($(attributeID), {
-            isTarget : true,
-            anchor: ["Perimeter", { shape : "Ellipse"} ],
-            endpoint : ["Dot", { radius : 1}],
-            connector : "Straight",
-            maxConnections : 1
-        });
-    jsPlumb.draggable(attributeName+attributeSuffix,{
-        containment : "parent"
-    });
+    }
 });
 
-
+//binding rightclick events to classes
+$([selector]).mousedown(function(event) 
+{
+    if(event.which == 0)
+    {
+        alert("yay");
+    }
+});
 
 
 });</script>
