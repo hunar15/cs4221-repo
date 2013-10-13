@@ -263,6 +263,12 @@ $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 // Converting all the buttons to the animated one
 $('.a_button').button();
 
+/* Radio button behaviours*/
+$radios =  $('.op-select :radio');
+$radios.on('change',function(){
+   $radios.not(this).prop('checked',false);
+});
+
 // Adding entities
 $('#Add-REntity').click(function(){
     if($("#REName")[0].value.indexOf("-") != -1)
@@ -432,16 +438,28 @@ $('#Add-ISARName').click(function(){
     relationshipCounter++;
 });
 
-//adding ISA relationships
+//adding OP relationships
 $('#Add-OPR').click(function(){
 
     var relationshipType;
-    if(confirm("Press OK for UNION and CANCEL for INTERSECTION type")) {
+    /*if(confirm("Press OK for UNION and CANCEL for INTERSECTION type")) {
         relationshipType = "union";
     } else {
         relationshipType = "intersection";
+    }*/
+    $("#op-dialog").dialog();
+});
+
+$('#op-selected').click(function(){   
+    $("#op-dialog").dialog('close');
+    var res = $('input[name="OP-select"]:checked').val();
+    if(res == 0)
+    {
+        relationshipType = "union";
     }
-        
+    else{
+        relationshipType = "interection";
+    }
     var relationshipSuffix = "-"+relationshipType+"-op-relationship",
         relationshipID = "#"+relationshipCounter+relationshipSuffix;
 
@@ -660,13 +678,13 @@ $( "#Add-Attribute-Entity" ).click(function() {
 
         </div>
     </div>
-    <div id="dialog" title="Attach to?" style="display:none;">
-    <input id="tags" /><button class="a_button">Attach!</button>
-    </div>
-    <div id="add-entity-dialog" title="Added Entity" style="display:none;">
-    </div>
     <div id="err-dialog" title="Error!" style="display:none;">
     <p>Please check your input!</p>
+    </div>
+    <div id="op-dialog" title="Choose Type of Operation" style="display:none;">
+        <input type="radio" name="OP-select" value="0" checked> Union
+        <input type="radio" name="OP-select" value="1" > Intersection<br><br>
+        <button id="op-selected" class="a_button">Add it!</button>
     </div>
 </body>
 </html>
