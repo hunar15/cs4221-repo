@@ -45,12 +45,23 @@ $(function() {
     //functions are placeholders for now
     var commonMenu = [{
         name: 'Edit Name',
-        title: 'create button',
         fun: function () {
             alert('prompt for new name')
         }}, {
   	    name: 'Delete',
-  	    title: 'Delete',
+        fun: function () {
+            alert('delete')
+        }}];
+    var attributeMenu = [{
+        name: 'Edit Name',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+  	    name: 'Toggle Identifying Attribute',
+        fun: function () {
+            alert('toggle id key')
+        }}, {
+  	    name: 'Delete',
         fun: function () {
             alert('delete')
         }}];
@@ -332,7 +343,7 @@ $('#Add-WEntity').click(function(){
         jsPlumb.draggable(weakEntityName+weakEntitySuffix,{
             containment : "parent"
         });
-
+        $(weakEntityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
         $( "#err-dialog" ).text("Already contains an entity of the same name!");
@@ -381,7 +392,7 @@ $('#Add-RRName').click(function(){
         jsPlumb.draggable(relationshipID.slice(1),{
             containment : "parent"
         });
-        
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         relationshipCounter++;
     } else {
         $( "#err-dialog" ).dialog();
@@ -389,10 +400,7 @@ $('#Add-RRName').click(function(){
 });
 
 //adding ISA relationships
-$('#Add-ISARName').click(function(){
-
-
-        
+$('#Add-ISARName').click(function(){        
     var relationshipSuffix = "-isa-relationship",
         relationshipID = "#"+relationshipCounter+relationshipSuffix;
 
@@ -420,7 +428,7 @@ $('#Add-ISARName').click(function(){
     jsPlumb.draggable(relationshipID.slice(1),{
         containment : "parent"
     });
-
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     relationshipCounter++;
 });
 
@@ -461,7 +469,7 @@ $('#Add-OPR').click(function(){
     jsPlumb.draggable(relationshipID.slice(1),{
         containment : "parent"
     });
-
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     relationshipCounter++;
 });
 
@@ -498,7 +506,7 @@ $('#Add-DRName').click(function(){
         jsPlumb.draggable(relationshipID.slice(1),{
             containment : "parent"
         });
-
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         relationshipCounter++;
         
     } else {
@@ -539,7 +547,7 @@ $('#Add-EXRName').click(function(){
         jsPlumb.draggable(relationshipID.slice(1),{
             containment : "parent"
         });
-
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         relationshipCounter++;
         
     } else {
@@ -597,19 +605,9 @@ $( "#Add-Attribute-Entity" ).click(function() {
         jsPlumb.draggable(attributeName+attributeSuffix,{
             containment : "parent"
         });
+        $(attributeID).contextMenu(contextMenuSettings.method,attributeMenu,contextMenuSettings.option);
     }
 });
-
-//binding rightclick events to classes
-$([selector]).mousedown(function(event) 
-{
-    if(event.which == 0)
-    {
-        alert("yay");
-    }
-});
-
-
 });</script>
 </head>
 
@@ -637,11 +635,9 @@ $([selector]).mousedown(function(event)
             <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
             <button id="Add-RRName" class="a_button">Add it!</button></div>
             <h3 class="subheader">ISA Relationship</h3>
-            <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship">
-            <button id="Add-ISARName" class="a_button">Add it!</button></div>
+            <div><button id="Add-ISARName" class="a_button">Add it!</button></div>
             <h3 class="subheader">OP Relationship</h3>
-            <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship">
-            <button id="Add-OPR" class="a_button">Add it!</button></div>
+            <div><button id="Add-OPR" class="a_button">Add it!</button></div>
             <h3 class="subheader">Decomp Relationship</h3>
             <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship">
             <button id="Add-DRName" class="a_button">Add it!</button></div>
