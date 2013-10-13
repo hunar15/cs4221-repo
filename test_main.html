@@ -7,7 +7,7 @@
 <link href="css/dbmod.css" rel="stylesheet">
 <script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
-<script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
+<script type="text/javascript" src="js/jquery.jsPlumb-1.5.3.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
 $(function() {
@@ -51,7 +51,8 @@ jsPlumb.bind('beforeDrop', function (info) {
     */
     //alert(JSON.stringify(info.sourceId));
     var QsourceObj = $("#"+info.sourceId),
-        QtargetObj = $("#"+info.targetId);
+        QtargetObj = $("#"+info.targetId),
+        newConnection = null;
 
     if(!hasReachedConnectionLimit(QsourceObj) && !hasReachedConnectionLimit(QtargetObj)) {
 
@@ -60,18 +61,44 @@ jsPlumb.bind('beforeDrop', function (info) {
             return false;
         } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
                     (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
-            jsPlumb.connect({
-                source: QsourceObj,
-                target: QtargetObj,
-                paintStyle:defaultConnectionPaintStyle,
-                hoverPaintStyle: defaultOnHoverConnectionPaintStyle
-            });
-            return false;
+            var labelOverlay = null;
+
+            if(confirm("Press OK for \"m\" cardinality")) {
+                //TODO: set Label as "m"
+                labelOverlay = [ "Label", { label : "m", location : 0.5, cssClass : "cardinality"}];
+            } else {
+                labelOverlay = [ "Label", { label : "1", location : 0.5, cssClass : "cardinality"}];
+            }
+
+            if(isRelationshipType(QsourceObj)) {
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Diamond"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : [ labelOverlay ]
+                });
+            } else {
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Rectangle"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : [ labelOverlay ]
+                });
+            }
+            
         } else if( (isEntityType(QsourceObj) && isAttributeType(QtargetObj)) ||
                    (isEntityType(QtargetObj) && isAttributeType(QsourceObj))) {
             //TODO: Arrows overlays work only when dragging from entity to attribute
             
-            var attributeEndpoint, newConnection, overlayConfig,
+            var attributeEndpoint, overlayConfig,
                 isTargetAttributeType = isAttributeType(QtargetObj),
                 toAddLater = null;
 
@@ -89,8 +116,8 @@ jsPlumb.bind('beforeDrop', function (info) {
                                 ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
                 } else {
                     overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                    toAddLater = ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}];
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
                                 //[["PlainArrow", { width : arrowWidth, length: arrowLength, location : 22, direction:1}],
                                 //["PlainArrow", { width : arrowWidth, length: arrowLength, location : 11, direction: 1}]];
                                 //["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
@@ -136,25 +163,27 @@ jsPlumb.bind('beforeDrop', function (info) {
                 });
             }
             attributeEndpoint.setEnabled(false);
-            newConnection.bind('click', function (connection) {
-                var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
-
-                if(deleteConnection) {
-                    if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
-                        attributeEndpoint.setEnabled(true);
-                    }
-
-                    jsPlumb.detach(connection);
-                }
-            });
-            return false;
+           
         }
     } else {
         alert("One of the connection elements has reached its connection limit!!");
         return false;
     }
 
-    
+    if(newConnection !== null) {
+         newConnection.bind('click', function (connection) {
+            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+            if(deleteConnection) {
+                if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
+                    attributeEndpoint.setEnabled(true);
+                }
+
+                jsPlumb.detach(connection);
+            }
+        });
+    }
+    return false;
 });
     // Nested Accordion code for the side tool-bar
     var parentDivs = $('#nestedAccordion div');
