@@ -45,9 +45,26 @@ function createRelationshipWithName (name) {
 	/*
 	Name is the unique identifier of the relationship
 	*/
-	var newEntity = "<div id=\""+name+"-relationship\" class=\"relationship\">"+
-						getInnerTextHTMLContent(name)+
+    var newEntity = "<div id=\""+name+"-relationship\" class=\"relationship\"";
+    
+    if(name.length >= 10 && name.length < 20)
+    {
+        newEntity = newEntity + " style=\"background-size:150px 150px; width:150px;" + 
+                    "height:150px; line-height:150px;\">" +
+                    getInnerTextHTMLContent(name)+
 					"</div>";
+    }
+    else if (name.length >= 20)
+    {
+        newEntity = newEntity + " style=\"background-size:200px 200px; width:200px;" + 
+                    "height:200px; line-height:200px;\">" +
+                    getInnerTextHTMLContent(name)+
+					"</div>";
+    }
+    else
+    {
+        newEntity = newEntity + ">" + getInnerTextHTMLContent(name)+"</div>";
+    }
 
 	return newEntity;
 }
