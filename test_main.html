@@ -182,6 +182,7 @@ $('.a_button').button();
 
 // Adding entities
 $('#Add-REntity').click(function(){
+    $("#REName")[0].value = $("#REName")[0].value.replace(" ","_");
     if(checkInputVal($("#REName")[0].value,allEntities) == -1)  {
         allEntities.push($("#REName")[0].value);
         var entityName = $("#REName")[0].value,
@@ -215,6 +216,7 @@ $('#Add-REntity').click(function(){
     }
 });
 $('#Add-WEntity').click(function(){
+    $("#WEName")[0].value = $("#WEName")[0].value.replace(" ","_");
     if(checkInputVal($("#WEName")[0].value,allEntities) == -1) {
         var weakEntityName = $("#WEName")[0].value
             weakEntitySuffix = "-weak-entity",
@@ -250,6 +252,7 @@ $('#Add-WEntity').click(function(){
 
 //adding relationships
 $('#Add-RRName').click(function(){
+    $("#RRName")[0].value = $("#RRName")[0].value.replace(" ","_");
     if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  {
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,

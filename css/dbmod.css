@@ -124,27 +124,6 @@ font-size: 15px;
 	background-color: white;
 	color: blue;
 }*/
-/*.relationship
-{
-    width: 0px; 
-    height: 0px;
-    border: 20px solid transparent; 
-    border-bottom-color: lightblue; 
-    position: relative; 
-    top: 0px;
-    background-color: white;
-}
-.relationship:after
-{
-    content: "";
-    position: absolute; 
-    left: -20px; 
-    top: 19px; 
-    width: 0; 
-    height: 0; 
-    border: 20px solid transparent; 
-    border-top-color: lightblue;
-}*/
 .relationship
 {
 	background-image:url(../img/diamond.gif);
