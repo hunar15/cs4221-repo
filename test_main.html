@@ -629,10 +629,7 @@ $([selector]).mousedown(function(event)
                 <button id="Add-REntity" class="a_button">Add it!</button></div>
             <h3 class="subheader">Weak Entity</h3>
                 <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity">
-                <button id="Add-WEntity" class="a_button">Add it!</button></div>
-            <h3 class="subheader">Entity Attribute</h3>
-                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
-                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>                
+                <button id="Add-WEntity" class="a_button">Add it!</button></div>               
             </div>
             <h2>ADD RELATIONSHIP</h2>
             <div>
@@ -660,12 +657,13 @@ $([selector]).mousedown(function(event)
             <p>to Entity</p>
             <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
             </div>
-            <h2>DELETE</h2>
+            <h2>ADD ATTRIBUTE</h2>
             <div>
-            <h3>Entity</h3>
-            <div>Which one? </div>
+            <h3 class="subheader">Attribute</h3>
+                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
+                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
             </div>
-            </div>
+        </div>
         </div>
         <div id="canvas">
 
