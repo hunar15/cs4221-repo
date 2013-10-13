@@ -25,7 +25,7 @@ function createWeakEntityWithName(name) {
 	/*
 	Name is the unique identifier of the object
 	*/
-	var newEntity = "<div id=\""+name+"-weak-entity\" class=\"weak-entity\">"+
+	var newEntity = "<div id=\""+name+"-weak-entity\" class=\"weak-entity iw-mTrigger\">"+
 						getInnerTextHTMLContent(name)+
 					"</div>";
 

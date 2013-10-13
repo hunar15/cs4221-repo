@@ -141,7 +141,26 @@ font-size: 15px;
 	color: blue;
 }*/
 .relationship, .isa-relationship, .op-relationship, .dc-relationship,
-.ex-relationship, .id-relationship
+{
+	background-image:url(../img/diamond.gif);
+	position:absolute;
+	width:80px;
+	height:80px;
+    line-height:80px;
+    vertical-align:middle;
+}
+
+.ex-relationship
+{
+	background-image:url(../img/diamond.gif);
+	position:absolute;
+	width:80px;
+	height:80px;
+    line-height:80px;
+    vertical-align:middle;
+}
+
+.id-relationship
 {
 	background-image:url(../img/diamond.gif);
 	position:absolute;
