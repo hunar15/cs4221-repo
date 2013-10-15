@@ -167,7 +167,7 @@ function isOPRelationshipType( element ) {
 }
 
 function isSingleParentRelationshipType(element) {
-	if(element.hasClass('op-relationship') || element.hasClass('dc-relationship')) {
+	if(element.hasClass('op-relationship') || element.hasClass('dc-relationship') || element.hasClass('isa-relationship')) {
 		return true;
 	} else {
 		return false;

@@ -16,6 +16,17 @@
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
 $(function() {
+    /*
+    TODO:
+        1. configure multiple connections between same ent. and same REGULAR rel.
+        2. configure edit and delete functionalities for context menus
+        3. universal context menus
+        4. hiding of the connection drag images when inactive
+        5. global variable setting for context menus
+        6. universal name indepedent ids for attributes and entities
+        7. set of all relationships and entities
+        8. popup for all the confirms 
+    */
     // Storage variable
     var allEntities = [];
     var allRelationships = [];
@@ -31,7 +42,12 @@ $(function() {
     //context menu for entity and relationship
     var contextMenuSettings={
         method:'menu',
+
         option:{
+            afterOpen : function (data,e) {
+                console.log(data);
+                console.log(e);
+            },
             triggerOn: 'click',
             displayAround: 'cursor',
             mouseClick: 'right',
@@ -48,9 +64,9 @@ $(function() {
         fun: function () {
             alert('prompt for new name')
         }}, {
-   name: 'Delete',
-        fun: function () {
-            alert('delete')
+        name: 'Delete',
+        fun: function (data,e) {
+            console.log(data);
         }}];
     var attributeMenu = [{
         name: 'Edit Name',
@@ -222,119 +238,164 @@ jsPlumb.bind('beforeDrop', function (info) {
                 } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
                             (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
                     
+                    var entityObj = isRelationshipType(QsourceObj) ? QtargetObj : QsourceObj,
+                        relationShipObj = isRelationshipType(QsourceObj) ? QsourceObj : QtargetObj;
 
-                    if(isRegularRelationshipType(QsourceObj) || isRegularRelationshipType(QtargetObj)) {
+                    if(isRegularRelationshipType(relationShipObj)) {
                         var labelOverlay = null,
                             connectionProperty = null
-                        if(confirm("Press OK for \"m\" cardinality")) {
-                            //TODO: set Label as "m"
-                            labelOverlay = [ "Label", { label : "m", location : 0.5, cssClass : "cardinality"}];
-                        } else {
-                            labelOverlay = [ "Label", { label : "1", location : 0.5, cssClass : "cardinality"}];
-                        }
 
-                        if(isRelationshipType(QsourceObj)) {
-                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Diamond");
-                        } else {
-                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Rectangle");
-                        }
-                        connectionProperty.overlays = [ labelOverlay];
-                        jsPlumb.connect(connectionProperty);
+                        $("#attr0-dialog").dialog({
+                            resizable : false,
+                            modal : true,
+                            buttons : {
+                                "OK" : function () {
+                                    var labelVal = $("#attr0-dialog > input:checked").val();
 
-                    } else if (isSingleParentRelationshipType(QsourceObj) || isSingleParentRelationshipType(QtargetObj)) {
+                                    labelOverlay = [ "Label", { label : labelVal, location : 0.5, cssClass : "cardinality"}];
+                            
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+                    
+                                    connectionProperty.overlays = [ labelOverlay];
+                                    newConnection = jsPlumb.connect(connectionProperty);
+                                    if(newConnection !== null) {
+                                         newConnection.bind('click', function (connection) {
+                                            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                                            if(deleteConnection) {
+                                                jsPlumb.detach(connection);
+                                            }
+                                        });
+                                    }
+                                    $(this).dialog('close');
+                                },
+                                "CANCEL" : function () {
+                                    $(this).dialog('close');
+                                }
+                            }
+                        });
+                        
+
+                    } else if (isSingleParentRelationshipType(relationShipObj)) {
                         /*
                             Conditional checks for relationships where the parent is restricted to 1 entity
                         */
-                            var overlayConfig = null,
-                                connectionProperty = null,
-                                isTargetEntity = isEntityType(QtargetObj),
-                                isParentConnection = false;
+                        var overlayConfig = null,
+                            connectionProperty = null,
+                            isTargetEntity = isEntityType(QtargetObj),
+                            isParentConnection = false;
 
-                        if(confirm("Press OK is entity if PARENT, CANCEL otherwise")) {
-                            isParentConnection = true;
-                            if (isTargetEntity && !hasParentConnection(QsourceObj)) {
-                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
-                            } else if(!isTargetEntity && !hasParentConnection(QtargetObj)) {
-                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 0, direction: -1}]];
-                            } else {
-                                alert("Cannot have more than 1 parent connection!!");
-                                return false;
+                        $("#attr2-dialog").dialog({
+                            resizable : false,
+                            modal : true,
+                            buttons : {
+                                "OK" : function () {
+                                    var selectedOption = $("#attr2-dialog > input:checked").val();
+
+                                    isParentConnection = (selectedOption == "0") ? true : false;
+
+                                    if (!hasParentConnection(relationShipObj) && isParentConnection) {
+                                        overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
+                                    } else if(hasParentConnection(relationShipObj) && isParentConnection) {
+                                        alert("Cannot have more than 1 parent connection!!");
+                                        return false;
+                                    }
+
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+
+                                    if(overlayConfig != null) {
+                                        connectionProperty.overlays = overlayConfig;
+                                    }
+
+                                    connectionProperty.parameters = {};
+                                    connectionProperty.parameters.isParentConnection = isParentConnection;
+
+                                    newConnection = jsPlumb.connect(connectionProperty);
+
+                                    if(newConnection !== null) {
+                                         newConnection.bind('click', function (connection) {
+                                            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                                            if(deleteConnection) {
+                                                jsPlumb.detach(connection);
+                                            }
+                                        });
+                                    }
+
+                                    $(this).dialog('close');
+                                },
+                                "CANCEL" : function () {
+                                    $(this).dialog('close');
+                                }
                             }
-                        }
+                        });
 
-                        if(isTargetEntity) {
-                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Diamond");
-                        } else {
-                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Rectangle");
-                        }
-
-                        if(overlayConfig != null) {
-                            connectionProperty.overlays = overlayConfig;
-                        }
-
-                        connectionProperty.parameters = {};
-                        connectionProperty.parameters.isParentConnection = isParentConnection;
-
-                        newConnection = jsPlumb.connect(connectionProperty);
-
-                    } else if (isNormalWeakRelationshipType(QsourceObj) || isNormalWeakRelationshipType(QtargetObj)) {
-                        /*
-                            TODO: conditional check rules:
-                                1. max 2 connections between entity and relationship
-                                2. atleast 1 connection has to be weak entity
-                                3. may have attributes
-
-                            psuedocode :
-
-                                if (has normal and is normal then fail) 
-                                else 
-                                    create
-
-
-                        */
-                        var isNormalEntityConnection = (isNormalEntityType(QsourceObj)||isNormalEntityType(QtargetObj)),
-                            relationShipObj = isRelationshipType(QsourceObj) ? QsourceObj : QtargetObj;
-                            entityObj = isEntityType(QsourceObj) ? QsourceObj : QtargetObj;
+                    } else if (isNormalWeakRelationshipType(relationShipObj)) {
+                        
+                        var isNormalEntityConnection = (isNormalEntityType(QsourceObj)||isNormalEntityType(QtargetObj));
                             overlayConfig = null,
                             isParentConnection = confirm("Press OK if parent connection, CANCEL otherwise");
 
-                        if(isParentConnection) {
-                            if (hasParentConnection(relationShipObj)) {
-                                alert("Cannot have more than 1 parent connections");
-                                return false;
-                            } else {
-                                //no overlays for parent connection
+                        $("#attr2-dialog").dialog({
+                            resizable : false,
+                            modal : true,
+                            buttons : {
+                                "OK" : function () {
+                                    var selectedOption = $("#attr2-dialog > input:checked").val();
+
+                                    isParentConnection = (selectedOption == "0") ? true : false;
+
+                                    if(isParentConnection) {
+                                        if (hasParentConnection(relationShipObj)) {
+                                            alert("Cannot have more than 1 parent connections");
+                                            return false;
+                                        } else {
+                                            //no overlays for parent connection
+                                        }
+                                    } else {
+                                        if (isNormalEntityConnection ) {
+                                            alert("Cannot create non-parent connection with normal entity.");
+                                            return false;
+                                        } else if ((getConnectionCount(relationShipObj) > 0) && !hasParentConnection(relationShipObj) ) {
+                                            alert("Cannot have 2 child connections.")
+                                            return false;
+                                        } else {
+                                            overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
+                                        }
+
+                                    }
+
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+
+                                    if(overlayConfig != null) {
+                                        connectionProperty.overlays = overlayConfig;
+                                    }
+
+                                    connectionProperty.parameters = {};
+                                    connectionProperty.parameters.isNormalEntityConnection = isNormalEntityConnection;
+                                    connectionProperty.parameters.isParentConnection = isParentConnection;
+
+                                    newConnection = jsPlumb.connect(connectionProperty);
+
+                                    if(newConnection !== null) {
+                                         newConnection.bind('click', function (connection) {
+                                            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                                            if(deleteConnection) {
+                                                jsPlumb.detach(connection);
+                                            }
+                                        });
+                                    }
+
+                                    $(this).dialog('close');
+                                },
+                                "CANCEL" : function () {
+                                    $(this).dialog('close');
+                                }
                             }
-                        } else {
-                            if (isNormalEntityConnection ) {
-                                alert("Cannot create non-parent connection with normal entity.");
-                                return false;
-                            } else if ((getConnectionCount(relationShipObj) > 0) && !hasParentConnection(relationShipObj) ) {
-                                alert("Cannot have 2 child connections.")
-                                return false;
-                            } else {
-                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
-                            }
-
-                        }
-
-                        connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
-
-                        if(overlayConfig != null) {
-                            connectionProperty.overlays = overlayConfig;
-                        }
-
-                        connectionProperty.parameters = {};
-                        connectionProperty.parameters.isNormalEntityConnection = isNormalEntityConnection;
-                        connectionProperty.parameters.isParentConnection = isParentConnection;
-
-                        newConnection = jsPlumb.connect(connectionProperty);
+                        });  
                     }
-                    
-
-                    
-                    
-                } else if( ((isEntityType(QsourceObj)||isRegularRelationshipType(QsourceObj)) && isAttributeType(QtargetObj)) ||
+                 } else if( ((isEntityType(QsourceObj)||isRegularRelationshipType(QsourceObj)) && isAttributeType(QtargetObj)) ||
                            ((isEntityType(QtargetObj)||isRegularRelationshipType(QtargetObj)) && isAttributeType(QsourceObj))) {
                     
                     var attributeEndpoint, overlayConfig,
@@ -347,25 +408,60 @@ jsPlumb.bind('beforeDrop', function (info) {
                     var arrowWidth = 10,
                         arrowLength = 10;
 
-                    if(confirm("Is attribute 1 - 1 ?")) {
-                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                    } else if (confirm("Is attribute 1 - m ?")) {
-                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
-                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
-                    } else if (confirm("Is attribute m - 1 ?")) {
-                            overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                    } else {
-                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}],
-                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 22, direction: -1}]];
-                    }
-                    connectionProperty = getConnectionProperty(attribObj,nonAttribObj,"Ellipse");
-                    attributeEndpoint = jsPlumb.selectEndpoints({ source: attribObj});
-                    connectionProperty.overlays = overlayConfig;
-                    newConnection = jsPlumb.connect(connectionProperty);
-                    attributeEndpoint.setEnabled(false);
-                   
+
+                    $("#attr1-dialog").dialog({
+                        resizable : false,
+                        modal : true,
+                        buttons : {
+                            "OK" : function () {
+                                var selectedOption = $("#attr1-dialog > input:checked").val();
+
+                                switch(selectedOption) {
+                                    case "0":
+                                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                    ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                                    break;
+                                    case "1":
+                                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                    ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
+                                    ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
+                                    break;
+                                    case "2":
+                                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                                    break;
+                                    case "3":
+                                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
+                                    ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
+                                    break;
+                                }
+
+                                connectionProperty = getConnectionProperty(attribObj,nonAttribObj,"Ellipse");
+                                attributeEndpoint = jsPlumb.selectEndpoints({ source: attribObj});
+                                connectionProperty.overlays = overlayConfig;
+                                newConnection = jsPlumb.connect(connectionProperty);
+                                attributeEndpoint.setEnabled(false);
+
+                                if(newConnection !== null) {
+                                     newConnection.bind('click', function (connection) {
+                                        var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                                        if(deleteConnection) {
+                                            if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
+                                                attributeEndpoint.setEnabled(true);
+                                            }
+
+                                            jsPlumb.detach(connection);
+                                        }
+                                    });
+                                }
+
+                                $(this).dialog('close');
+                            },
+                            "CANCEL" : function () {
+                                $(this).dialog('close');
+                            }
+                        }
+                    });
                 }
             } else {
                 alert("A connection already exists between the source and the target!!");
@@ -378,19 +474,7 @@ jsPlumb.bind('beforeDrop', function (info) {
         alert("One of the connection elements has reached its connection limit!!");
     }
 
-    if(newConnection !== null) {
-         newConnection.bind('click', function (connection) {
-            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
-
-            if(deleteConnection) {
-                if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
-                    attributeEndpoint.setEnabled(true);
-                }
-
-                jsPlumb.detach(connection);
-            }
-        });
-    }
+    
     return false;
 });
     // Nested Accordion code for the side tool-bar
@@ -903,6 +987,29 @@ A CS4221 project by P05 --unfinished version--
         <input type="radio" name="OP-select" value="0" checked> Union
         <input type="radio" name="OP-select" value="1" > Intersection<br><br>
         <button id="op-selected" class="a_button">Add it!</button>
+    </div>
+
+    <div id="attr0-dialog" title="Choose Cardinality of Edge" style="display:none;">
+        <input type="radio" name="attr0-select" value="1" checked>1</input>
+        <br />
+        <input type="radio" name="attr0-select" value="m" >m</input>
+        <!--button id="attr0-selected" class="a_button">Edit it!</button-->
+    </div>
+    
+    <div id="attr1-dialog" title="Choose Cardinality of Attribute" style="display:none;">
+        The Attribute is: 
+        <input type="radio" name="attr1-select" value="0" checked> 1 - 1
+        <input type="radio" name="attr1-select" value="1" > 1 - m
+        <input type="radio" name="attr1-select" value="2" > m - 1
+        <input type="radio" name="attr1-select" value="3" > m - m<br><br>
+    </div>
+
+    <div id="attr2-dialog" title="Choose Cardinality of Attribute" style="display:none;">
+        Select the role of parent in the new connection : 
+        <br />
+        <input type="radio" name="attr1-select" value="0" checked> Parent entity
+        <input type="radio" name="attr1-select" value="1" > Child entity
+        <br />
     </div>
     </div>
 
