@@ -5,6 +5,7 @@
 <title>DBMod - ER-Diagram Case Tool 4 U</title>
 <link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 <link href="css/dbmod.css" rel="stylesheet">
+<link href="css/contextMenu.css" rel="stylesheet">
 <script src="js/jquery-1.9.1.js"></script>
 <script src="TableManager.js"></script>
 <script src="algo_simple.js"></script>
@@ -27,6 +28,43 @@ $(function() {
         hoverOverEntityClass = "endpoint-entity-hover",
         noHoverOverEntityClass = "endpoint-no-display";
 
+    //context menu for entity and relationship
+    var contextMenuSettings={
+        method:'menu',
+        option:{
+            triggerOn: 'click',
+            displayAround: 'cursor',
+            mouseClick: 'right',
+            verAdjust: 0,
+            horAdjust: 0,
+            top:'auto',
+            left:'auto',
+            sizeStyle:'auto',
+            position: 'auto',
+    }};
+    //functions are placeholders for now
+    var commonMenu = [{
+        name: 'Edit Name',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+   name: 'Delete',
+        fun: function () {
+            alert('delete')
+        }}];
+    var attributeMenu = [{
+        name: 'Edit Name',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+   name: 'Toggle Identifying Attribute',
+        fun: function () {
+            alert('toggle id key')
+        }}, {
+   name: 'Delete',
+        fun: function () {
+            alert('delete')
+        }}];
     /*
         Counters of relationships with same name
             1. ISA-counter
@@ -379,6 +417,12 @@ $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 // Converting all the buttons to the animated one
 $('.a_button').button();
 
+/* Radio button behaviours*/
+$radios = $('.op-select :radio');
+$radios.on('change',function(){
+   $radios.not(this).prop('checked',false);
+});
+
 // Adding entities
 $('#Add-REntity').click(function(){
     if($("#REName")[0].value.indexOf("-") != -1)
@@ -415,7 +459,8 @@ $('#Add-REntity').click(function(){
         jsPlumb.draggable(entityName+entitySuffix,{
             containment : "parent"
         });
-        
+
+        $(entityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
         $( "#err-dialog" ).text("Already contains an entity of the same name!");
@@ -459,6 +504,7 @@ $('#Add-WEntity').click(function(){
             containment : "parent"
         });
 
+        $(weakEntityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
         $( "#err-dialog" ).text("Already contains an entity of the same name!");
@@ -509,6 +555,7 @@ $('#Add-RRName').click(function(){
         });
         
         relationshipCounter++;
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else {
         $( "#err-dialog" ).dialog();
     }
@@ -548,16 +595,26 @@ $('#Add-ISARName').click(function(){
     });
 
     relationshipCounter++;
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
 });
 
 //adding ISA relationships
 $('#Add-OPR').click(function(){
 
+    $("#op-dialog").dialog();
+});
+
+$('#op-selected').click(function(){
+    $("#op-dialog").dialog('close');
     var relationshipType;
-    if(confirm("Press OK for UNION and CANCEL for INTERSECTION type")) {
+
+    var res = $('input[name="OP-select"]:checked').val();
+    if(res == 0)
+    {
         relationshipType = "union";
-    } else {
-        relationshipType = "intersection";
+    }
+    else{
+        relationshipType = "interection";
     }
         
     var relationshipSuffix = "-"+relationshipType+"-op-relationship",
@@ -589,6 +646,7 @@ $('#Add-OPR').click(function(){
     });
 
     relationshipCounter++;
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
 });
 
 //adding Decomposed relationships
@@ -626,6 +684,7 @@ $('#Add-DRName').click(function(){
         });
 
         relationshipCounter++;
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         
     } else {
         $( "#err-dialog" ).dialog();
@@ -667,6 +726,7 @@ $('#Add-EXRName').click(function(){
         });
 
         relationshipCounter++;
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         
     } else {
         $( "#err-dialog" ).dialog();
@@ -708,6 +768,7 @@ $('#Add-IDRName').click(function(){
         });
 
         relationshipCounter++;
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         
     } else {
         $( "#err-dialog" ).dialog();
@@ -764,32 +825,33 @@ $( "#Add-Attribute-Entity" ).click(function() {
         jsPlumb.draggable(attributeName+attributeSuffix,{
             containment : "parent"
         });
+        $(attributeID).contextMenu(contextMenuSettings.method,attributeMenu,contextMenuSettings.option);
     }
 });
 
-//binding rightclick events to classes
-$([selector]).mousedown(function(event) 
-{
-    if(event.which == 0)
-    {
-        alert("yay");
-    }
-});
+//invoke tabs
+$( "#tabs" ).tabs();
 
 
 });</script>
 </head>
-
 <body>
-    <div id="topheader">
-     A CS4221 project by P05 
-    </div>
-    <h1 style="color:white">Welcome to DBMod!</h1>
-    <p style="color:white">Design your very own ER-diagrams and we will verify them for you!</p>
+<div id="topheader">
+A CS4221 project by P05 --unfinished version--
+</div>
+    
+<div id="tabs">
+    <ul>
+    <li><a href="#tabs-ERD">ERD view</a></li>
+    <li><a href="#tabs-Normal">Normal view</a></li>
+    </ul>
+    <div id="tabs-ERD">
+    <h1>Welcome to DBMod!</h1>
+    <p>Design your very own ER-diagrams and we will verify them for you!</p>
     <div id="content">
-        <div id="sidebar">
-            <div id="nestedAccordion">
-            <h2>ADD ENTITY</h2>
+    <div id="sidebar">
+    <div id="nestedAccordion">
+    <h2>ADD ENTITY</h2>
             <div>
             <h3 class="subheader">Regular Entity</h3>
                 <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity">
@@ -797,9 +859,6 @@ $([selector]).mousedown(function(event)
             <h3 class="subheader">Weak Entity</h3>
                 <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity">
                 <button id="Add-WEntity" class="a_button">Add it!</button></div>
-            <h3 class="subheader">Entity Attribute</h3>
-                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
-                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>                
             </div>
             <h2>ADD RELATIONSHIP</h2>
             <div>
@@ -807,11 +866,9 @@ $([selector]).mousedown(function(event)
             <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
             <button id="Add-RRName" class="a_button">Add it!</button></div>
             <h3 class="subheader">ISA Relationship</h3>
-            <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship">
-            <button id="Add-ISARName" class="a_button">Add it!</button></div>
+            <div><button id="Add-ISARName" class="a_button">Add it!</button></div>
             <h3 class="subheader">OP Relationship</h3>
-            <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship">
-            <button id="Add-OPR" class="a_button">Add it!</button></div>
+            <div><button id="Add-OPR" class="a_button">Add it!</button></div>
             <h3 class="subheader">Decomp Relationship</h3>
             <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship">
             <button id="Add-DRName" class="a_button">Add it!</button></div>
@@ -821,22 +878,18 @@ $([selector]).mousedown(function(event)
             <h3 class="subheader">ID Relationship</h3>
             <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship">
             <button id="Add-IDRName" class="a_button">Add it!</button></div>
-            <h3 class="subheader">Relationship Attribute</h3>
-            <div>
-            <input type="text" name="RAttrName" id="RAttrName" title="Name of Attribute">
-            <p>to Entity</p>
-            <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
             </div>
-            <h2>DELETE</h2>
+            <h2>ADD ATTRIBUTE</h2>
             <div>
-            <h3>Entity</h3>
-            <div>Which one? </div>
-            </div>
+            <h3 class="subheader">Attribute</h3>
+                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
+                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
             </div>
         </div>
-        <div id="canvas" class="canvas">
+        </div>
+        <div id="canvas">
 
-        </div>
+    </div>
     </div>
     <div id="dialog" title="Attach to?" style="display:none;">
     <input id="tags" /><button class="a_button">Attach!</button>
@@ -846,5 +899,20 @@ $([selector]).mousedown(function(event)
     <div id="err-dialog" title="Error!" style="display:none;">
     <p>Please check your input!</p>
     </div>
+    <div id="op-dialog" title="Choose Type of Operation" style="display:none;">
+        <input type="radio" name="OP-select" value="0" checked> Union
+        <input type="radio" name="OP-select" value="1" > Intersection<br><br>
+        <button id="op-selected" class="a_button">Add it!</button>
+    </div>
+    </div>
+
+<div id="tabs-Normal">
+<p>In this view you can specify FDs and MVDs for us to do normalization</p>
+
+</div>
+</div>
+
+    
+    
 </body>
 </html>

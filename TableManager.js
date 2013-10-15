@@ -52,7 +52,7 @@ var table_list_JSON = {"table_list": [
 };
 
 var attribute_JSON = {"attribute": [
-        {"table":"test1", "name": "test1", "type": "", "not_null":"", "PK":"", "FK":"", "UN":"", "AI":"", "Default":""}
+        {"table":"test1", "name": ""}
     ]
 };
 
@@ -135,11 +135,13 @@ function addAttribute(table_name, object)
 
 	for(var i = 0; i < object.length; i++)
 	{
-		var attribute_to_insert = {"table": table_name, "name": object[i].name, "type": object[i].type, "not_null": object[i].not_null, "PK": object[i].PK, "FK": object[i].FK, "UN": object[i].UN, "AI": object[i].AI, "Default": object[i].Default};
+		var attribute_to_insert = {"table": table_name, "name": object[i].name};
 		attribute_JSON.attribute.push(attribute_to_insert);
 	}
 	setCookie("attribute", JSON.stringify(attribute_JSON)); 
 }
+
+
 
 function deleteAttribute(table_name, attribute_name)
 {
@@ -268,7 +270,6 @@ function getFDNumber(table_name)
 	}
 	return ret;
 }
-
 function getMVDNumber(table_name)
 {
 	var ret = [];
