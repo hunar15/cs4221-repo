@@ -12,6 +12,10 @@ margin-top: 2em;
 cursor: pointer;
 }
 
+#tabs {
+height: 1000px;
+}
+
 #dialog-link {
 padding: .4em 1em .4em 20px;
 text-decoration: none;
@@ -64,7 +68,6 @@ background-color: white;
 
 #topheader {
 height: 20px;
-background-color: #696969;
 color: white;
 text-align: center;
 font-size: 15px;
