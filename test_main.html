@@ -5,10 +5,13 @@
 <title>DBMod - ER-Diagram Case Tool 4 U</title>
 <link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 <link href="css/dbmod.css" rel="stylesheet">
+<link href="css/contextMenu.css" rel="stylesheet">
 <script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
 <script src="TableManager.js"></script>
 <script src="algo_simple.js"></script>
+<script src="js/contextMenu.js"></script>
+<script src="js/contextMenu.min.js"></script>
 <script type="text/javascript" src="js/jquery.jsPlumb-1.5.2.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
@@ -19,11 +22,60 @@ $(function() {
     var defaultConnectionPaintStyle = {lineWidth:2,strokeStyle:'rgb(0,0,0)'},
         defaultOnHoverConnectionPaintStyle = {lineWidth:5,strokeStyle:'rgb(143,214,0)'}
     var defaultEndpointProperties = { src : "img/littledot.png",
-                                   cssClass : "endpoint-entity-hover", 
+                                   cssClass : "endpoint-entity-hover",
                                    hoverClass: "endpoint-hover" };
     var hoverOverEndpointClass = "endpoint-hover",
         hoverOverEntityClass = "endpoint-entity-hover",
         noHoverOverEntityClass = "endpoint-no-display";
+        
+    //context menu for entity and relationship
+    var contextMenuSettings={
+        method:'menu',
+        option:{
+            triggerOn: 'click',
+            displayAround: 'cursor',
+            mouseClick: 'right',
+            verAdjust: 0,
+            horAdjust: 0,
+            top:'auto',
+            left:'auto',
+            sizeStyle:'auto',
+            position: 'auto',
+}};
+    //functions are placeholders for now
+    var commonMenu = [{
+        name: 'Edit Name',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+   name: 'Delete',
+        fun: function () {
+            alert('delete')
+        }}];
+    var attributeMenu = [{
+        name: 'Edit Name',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+   name: 'Toggle Identifying Attribute',
+        fun: function () {
+            alert('toggle id key')
+        }}, {
+   name: 'Delete',
+        fun: function () {
+            alert('delete')
+        }}];
+
+    /*
+Counters of relationships with same name
+1. ISA-counter
+2. Union-OP-counter
+3. Intersection-OP-counter
+4.
+*/
+    var relationshipCounter = 0,
+        attributeCounter = 0;
+
     jsPlumb.Defaults.Container = $("#canvas");
     jsPlumb.Defaults.Connector = "Straight";
     jsPlumb.Defaults.PaintStyle = defaultConnectionPaintStyle;
@@ -40,20 +92,21 @@ $(function() {
 //Add connection listener
 jsPlumb.bind('beforeDrop', function (info) {
     /*
-    Structure of "info" object
-        {
-          connection         :     the new Connection.  you can register listeners on this etc.
-          sourceId         :    id of the source element in the Connection
-          targetId        :    id of the target element in the Connection
-          source        :    the source element in the Connection
-          target        :    the target element in the Connection
-          sourceEndpoint    :    the source Endpoint in the Connection
-          targetEndpoint    :    the targetEndpoint in the Connection
-        }
-    */
+Structure of "info" object
+{
+connection : the new Connection. you can register listeners on this etc.
+sourceId : id of the source element in the Connection
+targetId : id of the target element in the Connection
+source : the source element in the Connection
+target : the target element in the Connection
+sourceEndpoint : the source Endpoint in the Connection
+targetEndpoint : the targetEndpoint in the Connection
+}
+*/
     //alert(JSON.stringify(info.sourceId));
     var QsourceObj = $("#"+info.sourceId),
-        QtargetObj = $("#"+info.targetId);
+        QtargetObj = $("#"+info.targetId),
+        newConnection = null;
 
     if(!hasReachedConnectionLimit(QsourceObj) && !hasReachedConnectionLimit(QtargetObj)) {
 
@@ -62,18 +115,44 @@ jsPlumb.bind('beforeDrop', function (info) {
             return false;
         } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
                     (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
-            jsPlumb.connect({
-                source: QsourceObj,
-                target: QtargetObj,
-                paintStyle:defaultConnectionPaintStyle,
-                hoverPaintStyle: defaultOnHoverConnectionPaintStyle
-            });
-            return false;
+            var labelOverlay = null;
+
+            if(confirm("Press OK for \"m\" cardinality")) {
+                //TODO: set Label as "m"
+                labelOverlay = [ "Label", { label : "m", location : 0.5, cssClass : "cardinality"}];
+            } else {
+                labelOverlay = [ "Label", { label : "1", location : 0.5, cssClass : "cardinality"}];
+            }
+
+            if(isRelationshipType(QsourceObj)) {
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Diamond"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : [ labelOverlay ]
+                });
+            } else {
+                newConnection = jsPlumb.connect({
+                    source: QsourceObj,
+                    target: QtargetObj,
+                    paintStyle:defaultConnectionPaintStyle,
+                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                    anchor: ["Perimeter", { shape : "Rectangle"} ],
+                    endpoint : "Dot",
+                    endpointStyle : { radius : 1},
+                    overlays : [ labelOverlay ]
+                });
+            }
+            
         } else if( (isEntityType(QsourceObj) && isAttributeType(QtargetObj)) ||
                    (isEntityType(QtargetObj) && isAttributeType(QsourceObj))) {
             //TODO: Arrows overlays work only when dragging from entity to attribute
             
-            var attributeEndpoint, newConnection, overlayConfig,
+            var attributeEndpoint, overlayConfig,
                 isTargetAttributeType = isAttributeType(QtargetObj),
                 toAddLater = null;
 
@@ -91,8 +170,8 @@ jsPlumb.bind('beforeDrop', function (info) {
                                 ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
                 } else {
                     overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                    toAddLater = ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}];
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
+                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
                                 //[["PlainArrow", { width : arrowWidth, length: arrowLength, location : 22, direction:1}],
                                 //["PlainArrow", { width : arrowWidth, length: arrowLength, location : 11, direction: 1}]];
                                 //["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
@@ -138,25 +217,27 @@ jsPlumb.bind('beforeDrop', function (info) {
                 });
             }
             attributeEndpoint.setEnabled(false);
-            newConnection.bind('click', function (connection) {
-                var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
-
-                if(deleteConnection) {
-                    if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
-                        attributeEndpoint.setEnabled(true);
-                    }
-
-                    jsPlumb.detach(connection);
-                }
-            });
-            return false;
+           
         }
     } else {
         alert("One of the connection elements has reached its connection limit!!");
         return false;
     }
 
-    
+    if(newConnection !== null) {
+         newConnection.bind('click', function (connection) {
+            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+            if(deleteConnection) {
+                if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
+                    attributeEndpoint.setEnabled(true);
+                }
+
+                jsPlumb.detach(connection);
+            }
+        });
+    }
+    return false;
 });
     // Nested Accordion code for the side tool-bar
     var parentDivs = $('#nestedAccordion div');
@@ -182,9 +263,22 @@ $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 // Converting all the buttons to the animated one
 $('.a_button').button();
 
+/* Radio button behaviours*/
+$radios = $('.op-select :radio');
+$radios.on('change',function(){
+   $radios.not(this).prop('checked',false);
+});
+
 // Adding entities
 $('#Add-REntity').click(function(){
-    if(checkInputVal($("#REName")[0].value,allEntities) == -1)  {
+    if($("#REName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else if(checkInputVal($("#REName")[0].value,allEntities) == -1) {
+        $("#REName")[0].value = $("#REName")[0].value.trim();
+        $("#REName")[0].value = $("#REName")[0].value.replace(" ","-");
         allEntities.push($("#REName")[0].value);
         var entityName = $("#REName")[0].value,
             entitySuffix = "-entity",
@@ -211,13 +305,24 @@ $('#Add-REntity').click(function(){
         jsPlumb.draggable(entityName+entitySuffix,{
             containment : "parent"
         });
+        $(entityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
         
-    } else {
+    } else
+    {
+        $( "#err-dialog" ).text("Already contains an entity of the same name!");
         $( "#err-dialog" ).dialog();
     }
 });
 $('#Add-WEntity').click(function(){
-    if(checkInputVal($("#WEName")[0].value,allEntities) == -1) {
+    if($("#WEName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else if(checkInputVal($("#WEName")[0].value,allEntities) == -1)
+    {
+        $("#WEName")[0].value = $("#WEName")[0].value.trim();
+        $("#WEName")[0].value = $("#WEName")[0].value.replace(" ","-");
         var weakEntityName = $("#WEName")[0].value
             weakEntitySuffix = "-weak-entity",
             weakEntityID = "#"+weakEntityName+weakEntitySuffix;
@@ -244,21 +349,33 @@ $('#Add-WEntity').click(function(){
         jsPlumb.draggable(weakEntityName+weakEntitySuffix,{
             containment : "parent"
         });
-
-    } else {
+        $(weakEntityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+    } else
+    {
+        $( "#err-dialog" ).text("Already contains an entity of the same name!");
         $( "#err-dialog" ).dialog();
     }
 });
 
 //adding relationships
 $('#Add-RRName').click(function(){
-    if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  {
+
+    if($("#RRName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)
+    {
+        $("#RRName")[0].value = $("#RRName")[0].value.trim();
+        $("#RRName")[0].value = $("#RRName")[0].value.replace(" ","-");
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,
-            relationshipSuffix = "-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-relationship",
             relationshipID = "#"+relationshipName+relationshipSuffix;
 
-        $("#canvas").append(createRelationshipWithName(relationshipName));
+        allRelationships.push(relationshipID);
+        $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
         $( "#RRName" )[0].value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
@@ -266,7 +383,7 @@ $('#Add-RRName').click(function(){
             endpoint : ["Image", defaultEndpointProperties],
             //anchor: ["Perimeter", { shape : "Rectangle"} ],
             anchor: "Right",
-            containment: relationshipName+relationshipSuffix,
+            containment: relationshipID.slice(1),
             ConnectionsDetachable:false,
             isSource: true
         });
@@ -278,9 +395,178 @@ $('#Add-RRName').click(function(){
             connector : "Straight"
         });
 
-        jsPlumb.draggable(relationshipName+relationshipSuffix,{
+        jsPlumb.draggable(relationshipID.slice(1),{
             containment : "parent"
         });
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+        relationshipCounter++;
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
+});
+
+//adding ISA relationships
+$('#Add-ISARName').click(function(){
+    var relationshipSuffix = "-isa-relationship",
+        relationshipID = "#"+relationshipCounter+relationshipSuffix;
+
+    allRelationships.push(relationshipID);
+
+    $("#canvas").append(createISARelationshipWithId(relationshipID.slice(1)));
+    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+    jsPlumb.addEndpoint($(relationshipID), {
+        endpoint : ["Image", defaultEndpointProperties],
+        //anchor: ["Perimeter", { shape : "Rectangle"} ],
+        anchor: "Right",
+        containment: relationshipID.slice(1),
+        ConnectionsDetachable:false,
+        isSource: true
+    });
+
+    jsPlumb.makeTarget($(relationshipID), {
+        isTarget : true,
+        anchor: ["Perimeter", { shape : "Diamond"} ],
+        endpoint : ["Dot", { radius : 1}],
+        connector : "Straight"
+    });
+
+    jsPlumb.draggable(relationshipID.slice(1),{
+        containment : "parent"
+    });
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+    relationshipCounter++;
+});
+
+//adding OP relationships
+$('#Add-OPR').click(function(){
+
+    var relationshipType;
+    /*if(confirm("Press OK for UNION and CANCEL for INTERSECTION type")) {
+relationshipType = "union";
+} else {
+relationshipType = "intersection";
+}*/
+    $("#op-dialog").dialog();
+});
+
+$('#op-selected').click(function(){
+    $("#op-dialog").dialog('close');
+    var res = $('input[name="OP-select"]:checked').val();
+    if(res == 0)
+    {
+        relationshipType = "union";
+    }
+    else{
+        relationshipType = "interection";
+    }
+    var relationshipSuffix = "-"+relationshipType+"-op-relationship",
+        relationshipID = "#"+relationshipCounter+relationshipSuffix;
+
+    allRelationships.push(relationshipID);
+
+    $("#canvas").append(createOPRelationshipWithIdAndType(relationshipID.slice(1),relationshipType));
+    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+    jsPlumb.addEndpoint($(relationshipID), {
+        endpoint : ["Image", defaultEndpointProperties],
+        //anchor: ["Perimeter", { shape : "Rectangle"} ],
+        anchor: "Right",
+        containment: relationshipID.slice(1),
+        ConnectionsDetachable:false,
+        isSource: true
+    });
+
+    jsPlumb.makeTarget($(relationshipID), {
+        isTarget : true,
+        anchor: ["Perimeter", { shape : "Diamond"} ],
+        endpoint : ["Dot", { radius : 1}],
+        connector : "Straight"
+    });
+
+    jsPlumb.draggable(relationshipID.slice(1),{
+        containment : "parent"
+    });
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+    relationshipCounter++;
+});
+
+//adding Decomposed relationships
+$('#Add-DRName').click(function(){
+    $("#DRName")[0].value = $("#DRName")[0].value.replace(" ","_");
+    if(checkInputVal($("#DRName")[0].value,allRelationships) == -1) {
+        
+        var relationshipName = $("#DRName")[0].value,
+            relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
+            relationshipID = "#"+relationshipName+relationshipSuffix;
+
+        allRelationships.push(relationshipID);
+        $("#canvas").append(createDRelationshipWithName(relationshipName,relationshipID.slice(1)));
+        $( "#DRName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        jsPlumb.addEndpoint($(relationshipID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            //anchor: ["Perimeter", { shape : "Rectangle"} ],
+            anchor: "Right",
+            containment: relationshipID.slice(1),
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+        jsPlumb.makeTarget($(relationshipID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Diamond"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+
+        jsPlumb.draggable(relationshipID.slice(1),{
+            containment : "parent"
+        });
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+        relationshipCounter++;
+        
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
+});
+
+//adding Decomposed relationships
+$('#Add-EXRName').click(function(){
+    $("#EXRName")[0].value = $("#EXRName")[0].value.replace(" ","_");
+    if(checkInputVal($("#EXRName")[0].value,allRelationships) == -1) {
+        
+        var relationshipName = $("#EXRName")[0].value,
+            relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
+            relationshipID = "#"+relationshipName+relationshipSuffix;
+
+        allRelationships.push(relationshipID);
+        $("#canvas").append(createEXRelationshipWithName(relationshipName,relationshipID.slice(1)));
+        $( "#EXRName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        jsPlumb.addEndpoint($(relationshipID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            //anchor: ["Perimeter", { shape : "Rectangle"} ],
+            anchor: "Right",
+            containment: relationshipID.slice(1),
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+        jsPlumb.makeTarget($(relationshipID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Diamond"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+
+        jsPlumb.draggable(relationshipID.slice(1),{
+            containment : "parent"
+        });
+        $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+        relationshipCounter++;
         
     } else {
         $( "#err-dialog" ).dialog();
@@ -299,55 +585,56 @@ $( "#dialog-link, #icons li" ).hover(
 );
 $( "#Add-Attribute-Entity" ).click(function() {
     /*var ops= ['qwerty','asdfgh'];
-    $( '#tags' ).autocomplete({source: ops});
-    $( "#dialog" ).dialog();*/
+$( '#tags' ).autocomplete({source: ops});
+$( "#dialog" ).dialog();*/
+    if($("#EAttrName")[0].value.indexOf("-") != -1)
+    {
+        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).dialog();
+    }
+    else
+    {
+        var attributeName = $("#EAttrName")[0].value.trim(),
+            attributeSuffix = "-attribute",
+            attributeID = "#"+attributeName+attributeSuffix;
 
-    var attributeName = $("#EAttrName")[0].value,
-        attributeSuffix = "-attribute",
-        attributeID = "#"+attributeName+attributeSuffix;
+        attributeName = attributeName.replace(" ","-");
+        $("#canvas").append(createAttributeWithName(attributeName));
 
-    $("#canvas").append(createAttributeWithName(attributeName));
+        $( "#EAttrName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
-    $( "#EAttrName" )[0].value = "";
-    $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+        jsPlumb.addEndpoint($(attributeID), {
+                endpoint : ["Image", defaultEndpointProperties],
+                anchor: "Right",
+                containment: attributeName+attributeSuffix,
+                ConnectionsDetachable:false,
+                isSource: true
+            });
 
-    jsPlumb.addEndpoint($(attributeID), {
-            endpoint : ["Image", defaultEndpointProperties],
-            anchor: "Right",
-            containment: attributeName+attributeSuffix,
-            ConnectionsDetachable:false,
-            isSource: true
+        jsPlumb.makeTarget($(attributeID), {
+                isTarget : true,
+                anchor: ["Perimeter", { shape : "Ellipse"} ],
+                endpoint : ["Dot", { radius : 1}],
+                connector : "Straight",
+                maxConnections : 1
+            });
+        jsPlumb.draggable(attributeName+attributeSuffix,{
+            containment : "parent"
         });
-
-    jsPlumb.makeTarget($(attributeID), {
-            isTarget : true,
-            anchor: ["Perimeter", { shape : "Ellipse"} ],
-            endpoint : ["Dot", { radius : 1}],
-            connector : "Straight",
-            maxConnections : 1
-        });
-    jsPlumb.draggable(attributeName+attributeSuffix,{
-        containment : "parent"
-    });
+        $(attributeID).contextMenu(contextMenuSettings.method,attributeMenu,contextMenuSettings.option);
+    }
 });
 
-
-
+//invoke tabs
+$( "#tabs" ).tabs();
 
 });</script>
-
-
-<script>
-  $(function() {
-    $( "#tabs" ).tabs();
-  });
-</script>
-
 </head>
 
 <body>
 <div id="topheader">
-A CS4221 project by P05
+A CS4221 project by P05 --unfinished version--
 </div>
     
 <div id="tabs">
@@ -362,51 +649,42 @@ A CS4221 project by P05
     <div id="sidebar">
     <div id="nestedAccordion">
     <h2>ADD ENTITY</h2>
-    <div>
-    <h3 class="subheader">Regular Entity</h3>
-    <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity">
-    <button id="Add-REntity" class="a_button">Add it!</button></div>
-    <h3 class="subheader">Weak Entity</h3>
-    <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity">
-    <button id="Add-WEntity" class="a_button">Add it!</button></div>
-    <h3 class="subheader">Entity Attribute</h3>
-    <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
-    <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>                
-    </div>
-    <h2>ADD RELATIONSHIP</h2>
-    <div>
-    <h3 class="subheader">Regular Relationship</h3>
-    <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
-    <button id="Add-RRName" class="a_button">Add it!</button></div>
-    <h3 class="subheader">ISA Relationship</h3>
-    <div><input type="text" name="ISARName" id="ISARName" title="Name of New ISA Relationship">
-    <button id="Add-ISARName" class="a_button">Add it!</button></div>
-    <h3 class="subheader">OP Relationship</h3>
-    <div><input type="text" name="OPRName" id="OPRName" title="Name of New OP Relationship">
-    <button class="a_button">Add it!</button></div>
-    <h3 class="subheader">Decomp Relationship</h3>
-    <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship">
-    <button class="a_button">Add it!</button></div>
-    <h3 class="subheader">EX Relationship</h3>
-    <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship">
-    <button class="a_button">Add it!</button></div>
-    <h3 class="subheader">ID Relationship</h3>
-    <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship">
-    <button class="a_button">Add it!</button></div>
-    <h3 class="subheader">Relationship Attribute</h3>
-    <div>
-    <input type="text" name="RAttrName" id="RAttrName" title="Name of Attribute">
-    <p>to Entity</p>
-    <input type="text" name="Link-RName" id="Link-RName"><button>Add it!</button></div>
-    </div>
-    <h2>DELETE</h2>
-    <div>
-    <h3>Entity</h3>
-    <div>Which one? </div>
-    </div>
-    </div>
-    </div>
-    <div id="canvas">
+            <div>
+            <h3 class="subheader">Regular Entity</h3>
+                <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity">
+                <button id="Add-REntity" class="a_button">Add it!</button></div>
+            <h3 class="subheader">Weak Entity</h3>
+                <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity">
+                <button id="Add-WEntity" class="a_button">Add it!</button></div>
+            </div>
+            <h2>ADD RELATIONSHIP</h2>
+            <div>
+            <h3 class="subheader">Regular Relationship</h3>
+            <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship">
+            <button id="Add-RRName" class="a_button">Add it!</button></div>
+            <h3 class="subheader">ISA Relationship</h3>
+            <div><button id="Add-ISARName" class="a_button">Add it!</button></div>
+            <h3 class="subheader">OP Relationship</h3>
+            <div><button id="Add-OPR" class="a_button">Add it!</button></div>
+            <h3 class="subheader">Decomp Relationship</h3>
+            <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship">
+            <button id="Add-DRName" class="a_button">Add it!</button></div>
+            <h3 class="subheader">EX Relationship</h3>
+            <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship">
+            <button id="Add-EXRName" class="a_button">Add it!</button></div>
+            <h3 class="subheader">ID Relationship</h3>
+            <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship">
+            <button id="Add-IDRName" class="a_button">Add it!</button></div>
+            </div>
+            <h2>ADD ATTRIBUTE</h2>
+            <div>
+            <h3 class="subheader">Attribute</h3>
+                <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
+                <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
+            </div>
+        </div>
+        </div>
+        <div id="canvas">
 
     </div>
     </div>
@@ -417,6 +695,11 @@ A CS4221 project by P05
     </div>
     <div id="err-dialog" title="Error!" style="display:none;">
     <p>Please check your input!</p>
+    </div>
+    <div id="op-dialog" title="Choose Type of Operation" style="display:none;">
+        <input type="radio" name="OP-select" value="0" checked> Union
+        <input type="radio" name="OP-select" value="1" > Intersection<br><br>
+        <button id="op-selected" class="a_button">Add it!</button>
     </div>
     </div>
 
