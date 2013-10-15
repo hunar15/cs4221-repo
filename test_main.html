@@ -5,9 +5,9 @@
 <title>DBMod - ER-Diagram Case Tool 4 U</title>
 <link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 <link href="css/dbmod.css" rel="stylesheet">
+<script src="js/jquery-1.9.1.js"></script>
 <script src="TableManager.js"></script>
 <script src="algo_simple.js"></script>
-<script src="js/jquery-1.9.1.js"></script>
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
 <script src="js/contextMenu.js"></script>
 <script src="js/contextMenu.min.js"></script>
@@ -36,6 +36,110 @@ $(function() {
      */
     var relationshipCounter = 0,
         attributeCounter = 0;
+
+    function getConnectionProperty(source, target, perimeterType) {
+        var newProperty = {
+                        source: source,
+                        target: target,
+                        paintStyle:defaultConnectionPaintStyle,
+                        hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
+                        anchor: ["Perimeter", { shape : perimeterType} ],
+                        endpoint : "Dot",
+                        endpointStyle : { radius : 1}
+                    };
+
+        return newProperty;
+    }
+
+    function doesConnectionExist(source, target) {
+        var totalNumberOfConnections = jsPlumb.getConnections({ source : source, target : target}) +
+                                       jsPlumb.getConnections({ source : target, target : source});
+        return (totalNumberOfConnections.length > 0);
+    }
+
+    function doesConnectionHaveParameterWithValue (connectionObject, parameter, expectedValue) {
+        return (connectionObject.getParameters()[parameter] == expectedValue);
+    }
+    //For functions where only parent connection can exist
+    function hasParentConnection(object) {
+        var currentConnections;
+
+        //First check all connections where "object" is the source
+
+        currentConnections = jsPlumb.getConnections({source : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isParentConnection",true)) {
+                return true;
+            }
+        };
+
+        //Next check all connections where "object" is the target
+
+        currentConnections = jsPlumb.getConnections({target : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isParentConnection",true)) {
+                return true;
+            }
+        };
+
+        return false;
+    }
+
+    //For functions where only normal entity connection can exist
+    function hasNormalEntityConnection(object) {
+        var currentConnections;
+
+        //First check all connections where "object" is the source
+
+        currentConnections = jsPlumb.getConnections({source : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isNormalEntityConnection",true)) {
+                return true;
+            }
+        };
+
+        //Next check all connections where "object" is the target
+
+        currentConnections = jsPlumb.getConnections({target : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isNormalEntityConnection",true)) {
+                return true;
+            }
+        };
+
+        return false;
+    }
+
+    //For functions where only normal entity connection can exist
+    function hasWeakEntityConnection(object) {
+        var currentConnections;
+
+        //First check all connections where "object" is the source
+
+        currentConnections = jsPlumb.getConnections({source : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isNormalEntityConnection",false)) {
+                return true;
+            }
+        };
+
+        //Next check all connections where "object" is the target
+
+        currentConnections = jsPlumb.getConnections({target : object});
+
+        for (var i = 0; i < currentConnections.length; i++) {
+            if(doesConnectionHaveParameterWithValue(currentConnections[i],"isNormalEntityConnection",false)) {
+                return true;
+            }
+        };
+
+        return false;
+    }
 
     jsPlumb.Defaults.Container = $("#canvas");
     jsPlumb.Defaults.Connector = "Straight";
@@ -69,120 +173,171 @@ jsPlumb.bind('beforeDrop', function (info) {
         QtargetObj = $("#"+info.targetId),
         newConnection = null;
 
-    if(!hasReachedConnectionLimit(QsourceObj) && !hasReachedConnectionLimit(QtargetObj)) {
+    if(!hasReachedConnectionLimit(QsourceObj) && !hasReachedConnectionLimit(QtargetObj) ) {
+        //TODO : enable connection between an attribute and relationship
+        //TODO : enable recursive relationship between entity and attribute
 
-        if(isEntityType(QsourceObj) && isEntityType(QtargetObj)) {
-            alert("Cannot directly join 2 entity types");
-            return false;
-        } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
-                    (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
-            var labelOverlay = null;
+        if( info.sourceId != info.targetId) {
+            if(!doesConnectionExist(QsourceObj,QtargetObj)) {
+                if(isEntityType(QsourceObj) && isEntityType(QtargetObj)) {
+                    alert("Cannot directly join 2 entity types");
+                } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
+                            (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
+                    
 
-            if(confirm("Press OK for \"m\" cardinality")) {
-                //TODO: set Label as "m"
-                labelOverlay = [ "Label", { label : "m", location : 0.5, cssClass : "cardinality"}];
-            } else {
-                labelOverlay = [ "Label", { label : "1", location : 0.5, cssClass : "cardinality"}];
-            }
+                    if(isRegularRelationshipType(QsourceObj) || isRegularRelationshipType(QtargetObj)) {
+                        var labelOverlay = null,
+                            connectionProperty = null
+                        if(confirm("Press OK for \"m\" cardinality")) {
+                            //TODO: set Label as "m"
+                            labelOverlay = [ "Label", { label : "m", location : 0.5, cssClass : "cardinality"}];
+                        } else {
+                            labelOverlay = [ "Label", { label : "1", location : 0.5, cssClass : "cardinality"}];
+                        }
 
-            if(isRelationshipType(QsourceObj)) {
-                newConnection = jsPlumb.connect({
-                    source: QsourceObj,
-                    target: QtargetObj,
-                    paintStyle:defaultConnectionPaintStyle,
-                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
-                    anchor: ["Perimeter", { shape : "Diamond"} ],
-                    endpoint : "Dot",
-                    endpointStyle : { radius : 1},
-                    overlays : [ labelOverlay ]
-                });
-            } else {
-                newConnection = jsPlumb.connect({
-                    source: QsourceObj,
-                    target: QtargetObj,
-                    paintStyle:defaultConnectionPaintStyle,
-                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
-                    anchor: ["Perimeter", { shape : "Rectangle"} ],
-                    endpoint : "Dot",
-                    endpointStyle : { radius : 1},
-                    overlays : [ labelOverlay ]
-                });
-            }
-            
-        } else if( (isEntityType(QsourceObj) && isAttributeType(QtargetObj)) ||
-                   (isEntityType(QtargetObj) && isAttributeType(QsourceObj))) {
-            //TODO: Arrows overlays work only when dragging from entity to attribute
-            
-            var attributeEndpoint, overlayConfig,
-                isTargetAttributeType = isAttributeType(QtargetObj),
-                toAddLater = null;
+                        if(isRelationshipType(QsourceObj)) {
+                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Diamond");
+                        } else {
+                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Rectangle");
+                        }
+                        connectionProperty.overlays = [ labelOverlay];
+                        jsPlumb.connect(connectionProperty);
 
-            //var arrowDirection, arrowLocation;
-            var arrowWidth = 10,
-                arrowLength = 10;
+                    } else if (isSingleParentRelationshipType(QsourceObj) || isSingleParentRelationshipType(QtargetObj)) {
+                        /*
+                            Conditional checks for relationships where the parent is restricted to 1 entity
+                        */
+                            var overlayConfig = null,
+                                connectionProperty = null,
+                                isTargetEntity = isEntityType(QtargetObj),
+                                isParentConnection = false;
 
-            if(confirm("Is attribute 1 - 1 ?")) {
-                overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-            } else if (confirm("Is attribute 1 - m ?")) {
-                if (isTargetAttributeType) {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : -11, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                } else {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
-                                //[["PlainArrow", { width : arrowWidth, length: arrowLength, location : 22, direction:1}],
-                                //["PlainArrow", { width : arrowWidth, length: arrowLength, location : 11, direction: 1}]];
-                                //["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
+                        if(confirm("Press OK is entity if PARENT, CANCEL otherwise")) {
+                            isParentConnection = true;
+                            if (isTargetEntity && !hasParentConnection(QsourceObj)) {
+                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
+                            } else if(!isTargetEntity && !hasParentConnection(QtargetObj)) {
+                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 0, direction: -1}]];
+                            } else {
+                                alert("Cannot have more than 1 parent connection!!");
+                                return false;
+                            }
+                        }
+
+                        if(isTargetEntity) {
+                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Diamond");
+                        } else {
+                            connectionProperty = getConnectionProperty(QsourceObj,QtargetObj,"Rectangle");
+                        }
+
+                        if(overlayConfig != null) {
+                            connectionProperty.overlays = overlayConfig;
+                        }
+
+                        connectionProperty.parameters = {};
+                        connectionProperty.parameters.isParentConnection = isParentConnection;
+
+                        newConnection = jsPlumb.connect(connectionProperty);
+
+                    } else if (isNormalWeakRelationshipType(QsourceObj) || isNormalWeakRelationshipType(QtargetObj)) {
+                        /*
+                            TODO: conditional check rules:
+                                1. max 2 connections between entity and relationship
+                                2. atleast 1 connection has to be weak entity
+                                3. may have attributes
+
+                            psuedocode :
+
+                                if (has normal and is normal then fail) 
+                                else 
+                                    create
+
+
+                        */
+                        var isNormalEntityConnection = (isNormalEntityType(QsourceObj)||isNormalEntityType(QtargetObj)),
+                            relationShipObj = isRelationshipType(QsourceObj) ? QsourceObj : QtargetObj;
+                            entityObj = isEntityType(QsourceObj) ? QsourceObj : QtargetObj;
+                            overlayConfig = null,
+                            isParentConnection = confirm("Press OK if parent connection, CANCEL otherwise");
+
+                        if(isParentConnection) {
+                            if (hasParentConnection(relationShipObj)) {
+                                alert("Cannot have more than 1 parent connections");
+                                return false;
+                            } else {
+                                //no overlays for parent connection
+                            }
+                        } else {
+                            if (isNormalEntityConnection ) {
+                                alert("Cannot create non-parent connection with normal entity.");
+                                return false;
+                            } else if ((getConnectionCount(relationShipObj) > 0) && !hasParentConnection(relationShipObj) ) {
+                                alert("Cannot have 2 child connections.")
+                                return false;
+                            } else {
+                                overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
+                            }
+
+                        }
+
+                        connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+
+                        if(overlayConfig != null) {
+                            connectionProperty.overlays = overlayConfig;
+                        }
+
+                        connectionProperty.parameters = {};
+                        connectionProperty.parameters.isNormalEntityConnection = isNormalEntityConnection;
+                        connectionProperty.parameters.isParentConnection = isParentConnection;
+
+                        newConnection = jsPlumb.connect(connectionProperty);
+                    }
+                    
+
+                    
+                    
+                } else if( ((isEntityType(QsourceObj)||isRegularRelationshipType(QsourceObj)) && isAttributeType(QtargetObj)) ||
+                           ((isEntityType(QtargetObj)||isRegularRelationshipType(QtargetObj)) && isAttributeType(QsourceObj))) {
+                    
+                    var attributeEndpoint, overlayConfig,
+                        attribObj = isAttributeType(QtargetObj) ? QtargetObj : QsourceObj,
+                        nonAttribObj= isAttributeType(QtargetObj) ? QsourceObj : QtargetObj,
+                        toAddLater = null,
+                        connectionProperty = null;
+
+                    //var arrowDirection, arrowLocation;
+                    var arrowWidth = 10,
+                        arrowLength = 10;
+
+                    if(confirm("Is attribute 1 - 1 ?")) {
+                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                    } else if (confirm("Is attribute 1 - m ?")) {
+                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
+                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}],
+                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}]];
+                    } else if (confirm("Is attribute m - 1 ?")) {
+                            overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
+                    } else {
+                        overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}],
+                                        ["Arrow", { width : arrowWidth, length: arrowLength, location : 22, direction: -1}]];
+                    }
+                    connectionProperty = getConnectionProperty(attribObj,nonAttribObj,"Ellipse");
+                    attributeEndpoint = jsPlumb.selectEndpoints({ source: attribObj});
+                    connectionProperty.overlays = overlayConfig;
+                    newConnection = jsPlumb.connect(connectionProperty);
+                    attributeEndpoint.setEnabled(false);
+                   
                 }
-            } else if (confirm("Is attribute m - 1 ?")) {
-                if (isTargetAttributeType) {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}]];
-                } else {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 0, direction: -1}]];
-                }
             } else {
-                if (isTargetAttributeType) {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 1, direction: 1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : -11, direction: 1}]];
-                } else {
-                    overlayConfig = [["Arrow", { width : arrowWidth, length: arrowLength, location : 11, direction: -1}],
-                                ["Arrow", { width : arrowWidth, length: arrowLength, location : 22, direction: -1}]];
-                }
+                alert("A connection already exists between the source and the target!!");
             }
-            if(isTargetAttributeType) {
-                attributeEndpoint = jsPlumb.selectEndpoints({ source: QtargetObj});
-                newConnection = jsPlumb.connect({
-                    source: QsourceObj,
-                    target: QtargetObj,
-                    paintStyle:defaultConnectionPaintStyle,
-                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
-                    anchor: ["Perimeter", { shape : "Rectangle"} ],
-                    endpoint : "Dot",
-                    endpointStyle : { radius : 1},
-                    overlays : overlayConfig
-                });
-            } else {
-                attributeEndpoint = jsPlumb.selectEndpoints({ source: QsourceObj});
-                newConnection = jsPlumb.connect({
-                    source: QsourceObj,
-                    target: QtargetObj,
-                    paintStyle:defaultConnectionPaintStyle,
-                    hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
-                    anchor: ["Perimeter", { shape : "Ellipse"} ],
-                    endpoint : "Dot",
-                    endpointStyle : { radius : 1},
-                    overlays : overlayConfig
-                });
-            }
-            attributeEndpoint.setEnabled(false);
-           
+        } else {
+            alert("Cannot create a connection between an object and itself");
         }
+        
     } else {
         alert("One of the connection elements has reached its connection limit!!");
-        return false;
     }
 
     if(newConnection !== null) {
@@ -477,18 +632,59 @@ $('#Add-DRName').click(function(){
     }
 });
 
-//adding Decomposed relationships
+//adding EX relationships
 $('#Add-EXRName').click(function(){
     $("#EXRName")[0].value = $("#EXRName")[0].value.replace(" ","_");
     if(checkInputVal($("#EXRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#EXRName")[0].value,
-            relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship",
             relationshipID = "#"+relationshipName+relationshipSuffix;
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createEXRelationshipWithName(relationshipName,relationshipID.slice(1)));
         $( "#EXRName" )[0].value = "";
+        $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
+
+        jsPlumb.addEndpoint($(relationshipID), {
+            endpoint : ["Image", defaultEndpointProperties],
+            //anchor: ["Perimeter", { shape : "Rectangle"} ],
+            anchor: "Right",
+            containment: relationshipID.slice(1),
+            ConnectionsDetachable:false,
+            isSource: true
+        });
+
+        jsPlumb.makeTarget($(relationshipID), {
+            isTarget : true,
+            anchor: ["Perimeter", { shape : "Diamond"} ],
+            endpoint : ["Dot", { radius : 1}],
+            connector : "Straight"
+        });
+
+        jsPlumb.draggable(relationshipID.slice(1),{
+            containment : "parent"
+        });
+
+        relationshipCounter++;
+        
+    } else {
+        $( "#err-dialog" ).dialog();
+    }
+});
+
+//adding ID relationships
+$('#Add-IDRName').click(function(){
+    $("#IDRName")[0].value = $("#IDRName")[0].value.replace(" ","_");
+    if(checkInputVal($("#IDRName")[0].value,allRelationships) == -1)  {
+        
+        var relationshipName = $("#IDRName")[0].value,
+            relationshipSuffix = "-"+relationshipCounter+ "-id-relationship",
+            relationshipID = "#"+relationshipName+relationshipSuffix;
+
+        allRelationships.push(relationshipID);
+        $("#canvas").append(createIDRelationshipWithName(relationshipName,relationshipID.slice(1)));
+        $( "#IDRName" )[0].value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
         jsPlumb.addEndpoint($(relationshipID), {
@@ -638,7 +834,7 @@ $([selector]).mousedown(function(event)
             </div>
             </div>
         </div>
-        <div id="canvas">
+        <div id="canvas" class="canvas">
 
         </div>
     </div>

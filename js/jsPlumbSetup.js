@@ -108,13 +108,32 @@ function createEXRelationshipWithName (name, id) {
 	Type is from {"Union","Intersection"}
 	*/
 	name = name.charAt(0).toUpperCase() + name.slice(1);
-    var newEntity = "<div id=\""+id+"\" class=\"ex-relationship\">" + getInnerTextHTMLContent("EX <br/>Has " + name) +"</div>";
+    var newEntity = "<div id=\""+id+"\" class=\"ex-relationship\">" + getInnerTextHTMLContent("Has " + name) +"</div>";
+
+	return newEntity;
+}
+
+function createIDRelationshipWithName (name, id) {
+	/*
+	Id is the unique identifier of the relationship
+	Type is from {"Union","Intersection"}
+	*/
+	name = name.charAt(0).toUpperCase() + name.slice(1);
+    var newEntity = "<div id=\""+id+"\" class=\"id-relationship\">" + getInnerTextHTMLContent("Has " + name) +"</div>";
 
 	return newEntity;
 }
 
 function isEntityType (element) {
 	if(element.hasClass('entity') || element.hasClass('weak-entity')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isNormalEntityType (element) {
+	if(element.hasClass('entity')) {
 		return true;
 	} else {
 		return false;
@@ -130,6 +149,39 @@ function isRelationshipType( element ) {
 		return false;
 	}
 }
+
+function isRegularRelationshipType( element ) {
+	if(element.hasClass('relationship')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isOPRelationshipType( element ) {
+	if(element.hasClass('op-relationship')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isSingleParentRelationshipType(element) {
+	if(element.hasClass('op-relationship') || element.hasClass('dc-relationship')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isNormalWeakRelationshipType(element) {
+	if(element.hasClass('ex-relationship') || element.hasClass('id-relationship')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 function isAttributeType( element ) {
 	if(element.hasClass('attribute')) {
 		return true;
@@ -164,9 +216,14 @@ function hasReachedConnectionLimit (elementObject) {
 	var maxLimit =  _getConnectionLimitOfElement(elementObject);
 	if(maxLimit == 0) {
 		return false;
-	} else { 
-		return (jsPlumb.getConnections( { 
-			source : elementObject
-		}).length == maxLimit) ;
+	} else {
+		var currentNumber = jsPlumb.getConnections( { source : elementObject}).length +
+						 jsPlumb.getConnections( { target : elementObject}).length;
+		return (currentNumber == maxLimit) ;
 	}
+}
+
+function getConnectionCount(obj1) {
+	return jsPlumb.getConnections( { source : obj1}).length +
+						 jsPlumb.getConnections( { target : obj1}).length;
 }

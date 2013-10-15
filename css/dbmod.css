@@ -140,7 +140,7 @@ font-size: 15px;
 	background-color: white;
 	color: blue;
 }*/
-.relationship, .isa-relationship, .op-relationship, .dc-relationship,
+.relationship, .isa-relationship, .op-relationship, .dc-relationship
 {
 	background-image:url(../img/diamond.gif);
 	position:absolute;
