@@ -81,6 +81,19 @@ $(function() {
         fun: function () {
             alert('delete')
         }}];
+    var uniMenu = [{
+        name: 'Add Entity',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+        name: 'Add Relationship',
+        fun: function (data,e) {
+            console.log(data);
+        }}, {
+        name: 'Add Attribute',
+        fun: function (data,e) {
+            console.log(data);
+        }}];
     /*
         Counters of relationships with same name
             1. ISA-counter
@@ -916,6 +929,20 @@ $( "#Add-Attribute-Entity" ).click(function() {
 //invoke tabs
 $( "#tabs" ).tabs();
 
+//universal left-click
+$(document).bind("mouseup", function(e) {
+    if (e.which == 1) {  
+        $(".iw-contextMenu").hide();
+        //$('#canvas').contextMenu('destroy'); //will cause the entity & rel to become sticky
+    }
+    else if(e.which == 3) {
+        var this_element = e.target.id;
+        if(this_element == "canvas") {
+            //universal context menu here
+            //$("#canvas").contextMenu(contextMenuSettings.method,uniMenu,contextMenuSettings.option);
+        }
+    }
+});
 
 });</script>
 </head>
@@ -970,9 +997,8 @@ A CS4221 project by P05 --unfinished version--
                 <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
             </div>
         </div>
-        </div>
-        <div id="canvas">
-
+    </div>
+    <div id="canvas">
     </div>
     </div>
     <div id="dialog" title="Attach to?" style="display:none;">
@@ -1011,6 +1037,7 @@ A CS4221 project by P05 --unfinished version--
         <input type="radio" name="attr1-select" value="1" > Child entity
         <br />
     </div>
+    
     </div>
 
 <div id="tabs-Normal">
