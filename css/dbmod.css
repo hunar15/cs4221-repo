@@ -130,12 +130,17 @@ font-size: 15px;
 	border:solid 1px #4A6650;
 	border-radius: 50% / 50%;	
 }
-.endpoint-entity-hover{
-	opacity: 1.0;
+.endpoint-entity{
+    opacity: 0.2;
+    transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -webkit-transition: opacity 1s ease-in-out;
 }
-.endpoint-entity-hover
-{
-	opacity: 0.6;
+.endpoint-entity:hover{
+    opacity: 1.0;
+    transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -webkit-transition: opacity 1s ease-in-out;
 }
 .endpoint-no-display
 {

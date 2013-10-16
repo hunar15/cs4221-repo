@@ -33,11 +33,8 @@ $(function() {
     var defaultConnectionPaintStyle = {lineWidth:2,strokeStyle:'rgb(0,0,0)'},
         defaultOnHoverConnectionPaintStyle = {lineWidth:5,strokeStyle:'rgb(143,214,0)'}
     var defaultEndpointProperties = { src : "img/littledot.png",
-                                   cssClass : "endpoint-entity-hover", 
-                                   hoverClass: "endpoint-hover" };
-    var hoverOverEndpointClass = "endpoint-hover",
-        hoverOverEntityClass = "endpoint-entity-hover",
-        noHoverOverEntityClass = "endpoint-no-display";
+                                                    cssClass : "endpoint-entity" };
+    var current_component_div = "";
 
     //context menu for entity and relationship
     var contextMenuSettings={
@@ -45,8 +42,8 @@ $(function() {
 
         option:{
             afterOpen : function (data,e) {
-                console.log(data);
-                console.log(e);
+                //records the latest context menu's linked component
+                current_component_div = data.trigger.context.id;
             },
             triggerOn: 'click',
             displayAround: 'cursor',
