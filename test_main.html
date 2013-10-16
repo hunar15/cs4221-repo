@@ -12,6 +12,7 @@
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
 <script src="js/contextMenu.js"></script>
 <script src="js/contextMenu.min.js"></script>
+<script src="js/html2canvas.js"></script>
 <script type="text/javascript" src="js/jquery.jsPlumb-1.5.3.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
@@ -956,6 +957,16 @@ $(document).bind("mouseup", function(e) {
     }
 });
 
+$("#snapshot-select").click( function(){
+    html2canvas($('#canvas'), {
+        onrendered: function(canvas) {
+            var img = canvas.toDataURL();
+            window.open(img);
+        }
+    });
+});
+
+
 });</script>
 </head>
 <body>
@@ -1007,6 +1018,10 @@ A CS4221 project by P05 --unfinished version--
             <h3 class="subheader">Attribute</h3>
                 <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
                 <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
+            </div>
+            <h2>SCREEN CAPTURE</h2>
+            <div>
+            <h3 class="subheader"><button id="snapshot-select" class="a_button">*Snap*</button></h3>
             </div>
         </div>
     </div>
