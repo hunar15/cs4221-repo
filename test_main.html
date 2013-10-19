@@ -12,6 +12,7 @@
 <script src="js/jquery-ui-1.10.3.custom.js"></script>
 <script src="js/contextMenu.js"></script>
 <script src="js/contextMenu.min.js"></script>
+<script src="js/html2canvas.js"></script>
 <script type="text/javascript" src="js/jquery.jsPlumb-1.5.3.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script>
@@ -33,20 +34,33 @@ $(function() {
     var defaultConnectionPaintStyle = {lineWidth:2,strokeStyle:'rgb(0,0,0)'},
         defaultOnHoverConnectionPaintStyle = {lineWidth:5,strokeStyle:'rgb(143,214,0)'}
     var defaultEndpointProperties = { src : "img/littledot.png",
-                                   cssClass : "endpoint-entity-hover", 
-                                   hoverClass: "endpoint-hover" };
-    var hoverOverEndpointClass = "endpoint-hover",
-        hoverOverEntityClass = "endpoint-entity-hover",
-        noHoverOverEntityClass = "endpoint-no-display";
+                                                    cssClass : "endpoint-entity" };
+    var current_component_div = "";
 
     //context menu for entity and relationship
     var contextMenuSettings={
         method:'menu',
-
         option:{
             afterOpen : function (data,e) {
-                console.log(data);
-                console.log(e);
+                //records the latest context menu's linked component
+                current_component_div = data.trigger.context.id;
+            },
+            triggerOn: 'click',
+            displayAround: 'cursor',
+            mouseClick: 'right',
+            verAdjust: 0,
+            horAdjust: 0,
+            top:'auto',
+            left:'auto',
+            sizeStyle:'auto',
+            position: 'auto',
+    }};
+    var contextMenuUniSettings={
+        method:'menu',
+        option:{
+            onClose : function (data,e) {
+                //records the latest context menu's linked component
+                $("#canvas").contextMenu('destroy');
             },
             triggerOn: 'click',
             displayAround: 'cursor',
@@ -80,6 +94,19 @@ $(function() {
    name: 'Delete',
         fun: function () {
             alert('delete')
+        }}];
+    var uniMenu = [{
+        name: 'Add Entity',
+        fun: function () {
+            alert('prompt for new name')
+        }}, {
+        name: 'Add Relationship',
+        fun: function (data,e) {
+            console.log(data);
+        }}, {
+        name: 'Add Attribute',
+        fun: function (data,e) {
+            console.log(data);
         }}];
     /*
         Counters of relationships with same name
@@ -918,6 +945,29 @@ $( "#Add-Attribute-Entity" ).click(function() {
 //invoke tabs
 $( "#tabs" ).tabs();
 
+//universal left-click
+$(document).bind("mouseup", function(e) {
+    if (e.which == 1) {  
+        $(".iw-contextMenu").hide();
+    }
+    else if(e.which == 3) {
+        var this_element = e.target.id;
+        if(this_element == "canvas") {
+            //universal context menu here
+            $("#canvas").contextMenu(contextMenuUniSettings.method,uniMenu,contextMenuUniSettings.option);
+        }
+    }
+});
+
+$("#snapshot-select").click( function(){
+    html2canvas($('#canvas'), {
+        onrendered: function(canvas) {
+            var img = canvas.toDataURL();
+            window.open(img);
+        }
+    });
+});
+
 
 });</script>
 </head>
@@ -971,10 +1021,13 @@ A CS4221 project by P05 --unfinished version--
                 <div><input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute">
                 <button id="Add-Attribute-Entity" class="a_button">Add it!</button></div>
             </div>
+            <h2>SCREEN CAPTURE</h2>
+            <div>
+            <h3 class="subheader"><button id="snapshot-select" class="a_button">*Snap*</button></h3>
+            </div>
         </div>
-        </div>
-        <div id="canvas">
-
+    </div>
+    <div id="canvas">
     </div>
     </div>
     <div id="dialog" title="Attach to?" style="display:none;">
@@ -1013,6 +1066,7 @@ A CS4221 project by P05 --unfinished version--
         <input type="radio" name="attr1-select" value="1" > Child entity
         <br />
     </div>
+    
     </div>
 
 <div id="tabs-Normal">
