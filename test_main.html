@@ -18,14 +18,14 @@
 $(function() {
     /*
     TODO:
-        1. configure multiple connections between same ent. and same REGULAR rel.
-        2. configure edit and delete functionalities for context menus
+        1. configure multiple connections between same ent. and same REGULAR rel. --
+        2. configure edit and delete functionalities for context menus -- 
         3. universal context menus
         4. hiding of the connection drag images when inactive
         5. global variable setting for context menus
-        6. universal name indepedent ids for attributes and entities
+        6. universal name indepedent ids for entities --
         7. set of all relationships and entities
-        8. popup for all the confirms 
+        8. same attribute connection does not exist
     */
     // Storage variable
     var allEntities = [];
@@ -89,7 +89,8 @@ $(function() {
             4. 
      */
     var relationshipCounter = 0,
-        attributeCounter = 0;
+        attributeCounter = 0,
+        entityCounter = 0,
 
     function getConnectionProperty(source, target, perimeterType) {
         var newProperty = {
@@ -882,11 +883,11 @@ $( "#Add-Attribute-Entity" ).click(function() {
     else
     {
         var attributeName = $("#EAttrName")[0].value.trim(),
-            attributeSuffix = "-attribute",
+            attributeSuffix = "-"+attributeCounter+"-attribute",
             attributeID = "#"+attributeName+attributeSuffix;
 
         attributeName = attributeName.replace(" ","-");
-        $("#canvas").append(createAttributeWithName(attributeName));
+        $("#canvas").append(createAttributeWithNameAndId(attributeName,attributeID.slice(1)));
 
         $( "#EAttrName" )[0].value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
@@ -906,10 +907,11 @@ $( "#Add-Attribute-Entity" ).click(function() {
                 connector : "Straight",
                 maxConnections : 1
             });
-        jsPlumb.draggable(attributeName+attributeSuffix,{
+        jsPlumb.draggable(attributeID.slice(1),{
             containment : "parent"
         });
         $(attributeID).contextMenu(contextMenuSettings.method,attributeMenu,contextMenuSettings.option);
+        attributeCounter++;
     }
 });
 

@@ -32,11 +32,11 @@ function createWeakEntityWithName(name) {
 	return newEntity;
 }
 
-function createAttributeWithName(name) {
+function createAttributeWithNameAndId(name,id) {
 	/*
 	Name is the unique identifier of the Attribute
 	*/
-	var newEntity = "<div id=\""+name+"-attribute\" class=\"attribute\">"+
+	var newEntity = "<div id=\""+id+"\" class=\"attribute\">"+
 						getInnerTextHTMLContent(name)+
 					"</div>";
 
