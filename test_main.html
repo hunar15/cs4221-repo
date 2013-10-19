@@ -25,8 +25,8 @@ $(function() {
         4. hiding of the connection drag images when inactive
         5. global variable setting for context menus
         6. universal name indepedent ids for entities --
-        7. set of all relationships and entities
-        8. same attribute connection does not exist
+        7. set of all relationships and entities --
+        8. same attribute connection does not exist --
     */
     // Storage variable
     var allEntities = [];
@@ -117,7 +117,7 @@ $(function() {
      */
     var relationshipCounter = 0,
         attributeCounter = 0,
-        entityCounter = 0,
+        entityCounter = 0;
 
     function getConnectionProperty(source, target, perimeterType) {
         var newProperty = {
@@ -946,11 +946,12 @@ $( "#Add-Attribute-Entity" ).click(function() {
 $( "#tabs" ).tabs();
 
 //universal left-click
-$(document).bind("mouseup", function(e) {
+$("#canvas").bind("mousedown", function(e) {
     if (e.which == 1) {  
         $(".iw-contextMenu").hide();
     }
     else if(e.which == 3) {
+        console.log("Does this print?");
         var this_element = e.target.id;
         if(this_element == "canvas") {
             //universal context menu here
