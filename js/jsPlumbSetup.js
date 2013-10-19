@@ -7,25 +7,22 @@ function getInnerTextHTMLContent(value) {
 			"</div>";
 }
 
-function createEntityWithName(name) {
+function createEntityWithNameAndId(name,id) {
 	/*
 	Name is the unique identifier of the object
 	*/
-	var newEntity = "<div id=\""+name+"-entity\" class=\"entity\">"+
+	var newEntity = "<div id=\""+id+"\" class=\"entity\">"+
 						getInnerTextHTMLContent(name)+
-						"<div id=\""+name+"-entity-ep\" class=\"connector-container\"> "+
-							//"<img src=\"img/littledot.png\">"+
-						"</div>"+
 					"</div>";
 
 	return newEntity;
 }
 
-function createWeakEntityWithName(name) {
+function createWeakEntityWithNameAndId(name,id) {
 	/*
 	Name is the unique identifier of the object
 	*/
-	var newEntity = "<div id=\""+name+"-weak-entity\" class=\"weak-entity iw-mTrigger\">"+
+	var newEntity = "<div id=\""+id+"\" class=\"weak-entity\">"+
 						getInnerTextHTMLContent(name)+
 					"</div>";
 

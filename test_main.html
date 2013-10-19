@@ -36,7 +36,7 @@ $(function() {
     var defaultEndpointProperties = { src : "img/littledot.png",
                                                     cssClass : "endpoint-entity" };
     var current_component_div = "";
-
+    var entityAlreadyExistsMessage = "Already contains an entity of the same name!";
     //context menu for entity and relationship
     var contextMenuSettings={
         method:'menu',
@@ -76,16 +76,64 @@ $(function() {
     var commonMenu = [{
         name: 'Edit Name',
         fun: function () {
-            alert('prompt for new name')
+            $("#edit-dialog").dialog({
+                resizable : false,
+                modal : false,
+                buttons : {
+                    "OK" : function () {
+                        var newName = $("#edit-new-name").val().trim();
+                        if(newName == "") {
+                            //TODO: Properly validate values, for ex through universal validator?
+                            spawnErrorDialogWithMessage("Invalid name!");
+                        } else {
+                            if(editComponent(newName)) {
+                                $(this).dialog('close');
+                            }
+                        }
+                    },
+                    "CANCEL" : function () {
+                        $(this).dialog('close');
+                    }
+                }
+            });
         }}, {
         name: 'Delete',
         fun: function (e) {
             deleteComponent();
         }}];
+
+    var commonMenuNoEdit = [{
+            name: 'Delete',
+            fun: function (e) {
+                deleteComponent();
+            }
+        }];
     var attributeMenu = [{
         name: 'Edit Name',
         fun: function () {
-            alert('prompt for new name')
+            $("#edit-dialog").dialog({
+                resizable : false,
+                modal : false,
+                buttons : {
+                    "OK" : function () {
+                        var newName = $("#edit-new-name").val().trim();
+                        if(newName == "") {
+                            //TODO: Properly validate values, for ex through universal validator?
+                            spawnErrorDialogWithMessage("Invalid name!");
+                        } else if( hasCoAttributeWithSameName(current_component_div,newName) ) {
+
+                            spawnErrorDialogWithMessage("An attribute with the same name is already connected!");
+                        } else {
+                            if(editComponent(newName)) {
+                                $(this).dialog('close');
+                            }
+                        }
+                    },
+                    "CANCEL" : function () {
+                        $(this).dialog('close');
+                    }
+                }
+            });
         }}, {
    name: 'Toggle Identifying Attribute',
         fun: function () {
@@ -124,6 +172,23 @@ $(function() {
         jsPlumb.selectEndpoints({ source : current_component_div}).remove();
         $("#"+current_component_div).remove();
     }
+
+    function editComponent(name) {
+        debugger;
+        if(isEntityType($("#"+current_component_div)) && !shouldCreateEntity(name)) {
+            spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
+            return false;
+        } else {
+            $("#"+current_component_div+" > div > strong").html(name);
+            jsPlumb.repaintEverything();
+            return true;
+        }
+    }
+
+    function spawnErrorDialogWithMessage (errorMessage) {
+        $( "#err-dialog" ).text(errorMessage);
+        $( "#err-dialog" ).dialog();
+    }
     function getConnectionProperty(source, target, perimeterType) {
         var newProperty = {
                         source: source,
@@ -144,9 +209,9 @@ $(function() {
         return (totalNumberOfConnections.length > 0);
     }
 
-    function hasAttributeWithSameName(nonAttributeObject, attributeObject) {
+    function hasAttributeWithSameName(nonAttributeObject, attributeName) {
         var allConnections,
-            attributeName = $("#"+attributeObject.attr("id")+ " > div > strong").html(),
+            //attributeName = $("#"+attributeObject.attr("id")+ " > div > strong").html(),
             attributeSelector = $("strong:contains('"+attributeName+"')").parent().parent();
 
 
@@ -166,6 +231,46 @@ $(function() {
                 return true;
         }
 
+        return false;
+    }
+
+    function hasCoAttributeWithSameName(attributeId,name) {
+        
+        /*
+            Program logic : 
+                Find all canvas objects with the same content.
+                For all of those objects, see if they are of attribute type and make a connection 
+                with the connector of the attribute..javasc 
+        */
+        //debugger;
+        var isAttributeFromId = function(id) {
+            return id.split('-').slice(-1)[0] == 'attribute';
+        };
+
+        var allInnerElementsContainingTheName = $("strong:contains('"+name+"')");
+
+        //Does name conflict occur at all in the whole canvas
+        if (allInnerElementsContainingTheName.length != 0) {
+            var allElementsContainingTheName =  allInnerElementsContainingTheName.parent().parent(),
+                allConnectionsOfObjectToBeEdited = jsPlumb.getConnections({source: attributeId})
+                                        .concat(jsPlumb.getConnections({target : attributeId}));
+            //Is the attribute connected at all?
+            if (allConnectionsOfObjectToBeEdited.length != 0) {
+                var objectAtOtherEndOfConnection = isAttributeFromId(allConnectionsOfObjectToBeEdited[0].endpoints[0].elementId) ? allConnectionsOfObjectToBeEdited[0].endpoints[1].elementId : allConnectionsOfObjectToBeEdited[0].endpoints[0].elementId;
+
+                if(allElementsContainingTheName != 0) {
+                    for(var counter in allElementsContainingTheName) {
+                        var eachElement = allElementsContainingTheName[counter];
+
+                        var existingConnection = jsPlumb.getConnections({source: eachElement, target: objectAtOtherEndOfConnection})
+                                                .concat(jsPlumb.getConnections({target : eachElement, source: objectAtOtherEndOfConnection}));
+                        if(isAttributeType($(eachElement)) && existingConnection.length!=0)
+                            return true;
+                    }
+                }
+            }
+        }
+        
         return false;
     }
     function doesConnectionHaveParameterWithValue (connectionObject, parameter, expectedValue) {
@@ -462,7 +567,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                         connectionProperty = null;
 
 
-                    if(!hasAttributeWithSameName(nonAttribObj,attribObj)) {
+                    if(!hasAttributeWithSameName(nonAttribObj,$("#"+attribObj.attr("id")+ " > div > strong").html())) {
                         //TODO: Check if attribute connection with the same parent exists or not
                         //var arrowDirection, arrowLocation;
                         var arrowWidth = 10,
@@ -630,13 +735,13 @@ $('#Add-REntity').click(function(){
     }
     else if(shouldCreateEntity($("#REName")[0].value))  {
         
-        $("#REName")[0].value = $("#REName")[0].value.replace(" ","-");
+        $("#REName")[0].value = $("#REName")[0].value.replace(/\s/g,"-");
         allEntities.push($("#REName")[0].value);
         var entityName = $("#REName")[0].value,
             entitySuffix = "-entity",
-            entityID = "#"+entityName+entitySuffix;
+            entityID = "#"+entityName+"-"+entityCounter+entitySuffix;
 
-        $("#canvas").append(createEntityWithName(entityName));
+        $("#canvas").append(createEntityWithNameAndId(entityName,entityID.slice(1)));
         $( "#REName" )[0].value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
@@ -654,15 +759,15 @@ $('#Add-REntity').click(function(){
             endpoint : ["Dot", { radius : 1}],
             connector : "Straight"
         });
-        jsPlumb.draggable(entityName+entitySuffix,{
+        jsPlumb.draggable($(entityID),{
             containment : "parent"
         });
 
+        entityCounter++;
         $(entityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
-        $( "#err-dialog" ).text("Already contains an entity of the same name!");
-        $( "#err-dialog" ).dialog();
+        spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
     }
 });
 $('#Add-WEntity').click(function(){
@@ -675,13 +780,13 @@ $('#Add-WEntity').click(function(){
     else if(shouldCreateEntity($("#WEName")[0].value)) 
     {
         
-        $("#WEName")[0].value = $("#WEName")[0].value.replace(" ","-");
+        $("#WEName")[0].value = $("#WEName")[0].value.replace(/\s/g,"-");
         var weakEntityName = $("#WEName")[0].value
             weakEntitySuffix = "-weak-entity",
-            weakEntityID = "#"+weakEntityName+weakEntitySuffix;
+            weakEntityID = "#"+weakEntityName+"-"+entityCounter+weakEntitySuffix;
         allEntities.push(weakEntityName);
 
-        $("#canvas").append(createWeakEntityWithName(weakEntityName));
+        $("#canvas").append(createWeakEntityWithNameAndId(weakEntityName,weakEntityID.slice(1)));
         $( "#WEName" )[0].value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
@@ -699,14 +804,15 @@ $('#Add-WEntity').click(function(){
             endpoint : ["Dot", { radius : 1}],
             connector : "Straight"
         });
-        jsPlumb.draggable(weakEntityName+weakEntitySuffix,{
+        jsPlumb.draggable($(weakEntityID),{
             containment : "parent"
         });
 
+        entityCounter++;
         $(weakEntityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
-        $( "#err-dialog" ).text("Already contains an entity of the same name!");
+        $( "#err-dialog" ).text();
         $( "#err-dialog" ).dialog();
     }
 });
@@ -722,7 +828,7 @@ $('#Add-RRName').click(function(){
     else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  
     {   
         $("#RRName")[0].value = $("#RRName")[0].value.trim();
-        $("#RRName")[0].value = $("#RRName")[0].value.replace(" ","-");
+        $("#RRName")[0].value = $("#RRName")[0].value.replace(/\s/g,"-");
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-relationship",
@@ -794,7 +900,7 @@ $('#Add-ISARName').click(function(){
     });
 
     relationshipCounter++;
-    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenuNoEdit,contextMenuSettings.option);
 });
 
 //adding ISA relationships
@@ -845,12 +951,12 @@ $('#op-selected').click(function(){
     });
 
     relationshipCounter++;
-    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
+    $(relationshipID).contextMenu(contextMenuSettings.method,commonMenuNoEdit,contextMenuSettings.option);
 });
 
 //adding Decomposed relationships
 $('#Add-DRName').click(function(){
-    $("#DRName")[0].value = $("#DRName")[0].value.replace(" ","_");
+    $("#DRName")[0].value = $("#DRName")[0].value.trim().replace(/\s/g,"-");
     if(checkInputVal($("#DRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#DRName")[0].value,
@@ -892,7 +998,7 @@ $('#Add-DRName').click(function(){
 
 //adding EX relationships
 $('#Add-EXRName').click(function(){
-    $("#EXRName")[0].value = $("#EXRName")[0].value.replace(" ","_");
+    $("#EXRName")[0].value = $("#EXRName")[0].value.trim().replace(/\s/g,"-");
     if(checkInputVal($("#EXRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#EXRName")[0].value,
@@ -934,7 +1040,7 @@ $('#Add-EXRName').click(function(){
 
 //adding ID relationships
 $('#Add-IDRName').click(function(){
-    $("#IDRName")[0].value = $("#IDRName")[0].value.replace(" ","_");
+    $("#IDRName")[0].value = $("#IDRName")[0].value.trim().replace(/\s/g,"-");
     if(checkInputVal($("#IDRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#IDRName")[0].value,
@@ -1154,6 +1260,13 @@ A CS4221 project by P05 --unfinished version--
         <br />
     </div>
     
+    <div id="edit-dialog" title="Choose New Name" style="display:none;">
+        Select the new name of the object :
+        <br />
+        <input type="text" placeholder="New name" id="edit-new-name"></input>
+        <br />
+    </div>
+
     </div>
 
 <div id="tabs-Normal">
