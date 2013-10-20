@@ -20,15 +20,12 @@ $(function() {
     /*
     TODO:
         1. configure multiple connections between same ent. and same REGULAR rel. -- DONE
-        2. configure edit and delete functionalities for context menus -- 
-        3. universal context menus - DONE
-        4. hiding of the connection drag images when inactive
-        5. global variable setting for context menus - DONE
-        6. universal name indepedent ids for entities --
-        7. set of all relationships and entities --
-        8. same attribute connection does not exist -- DONE
+        4. hiding of the connection drag images when inactive 
+        5. Make sure '-' does not replace ' ' in any new object
     */
     // Storage variable
+
+
     var allEntities = [];
     var allRelationships = [];
     var defaultConnectionPaintStyle = {lineWidth:2,strokeStyle:'rgb(0,0,0)'},
@@ -73,6 +70,10 @@ $(function() {
             position: 'auto',
     }};
     //functions are placeholders for now
+
+    //Group select and drag
+
+
     var commonMenu = [{
         name: 'Edit Name',
         fun: function () {
@@ -174,7 +175,7 @@ $(function() {
     }
 
     function editComponent(name) {
-        debugger;
+       // debugger;
         if(isEntityType($("#"+current_component_div)) && !shouldCreateEntity(name)) {
             spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
             return false;
