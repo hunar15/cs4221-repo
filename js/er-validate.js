@@ -97,12 +97,44 @@ function isValidERDiagram() {
 		return true;
 	}
 
+	function _singleParentRelationshipsHaveParentAndTwoChildren () {
+		var allRelationships = $(".op-relationship, .isa-relationship, .dc-relationship");
+
+		if(allRelationships.length != 0) {
+			for (var i = 0; i < allRelationships.length; i++) {
+				var currentRelationship = allRelationships[i].id;
+
+				var allConnectionsToObject =_getAllEdgesOfNode(currentRelationship),
+					hasParent = false,
+					childCount = 0;
+
+				for (var j = 0; j < allConnectionsToObject.length; j++) {
+					var currentConnection = allConnectionsToObject[j];
+					if(currentConnection.getParameters().isParentConnection)
+						hasParent = true;
+					else
+						childCount++;
+				}
+
+				if(!hasParent || (childCount <2))
+					return false;
+			}
+		} else {
+			return true;
+		}
+		return true;
+	}
+
 	function mainExecution () {
 		
 		//Check if the ER-Diagram is a connected graph
 		if(_isConnectedGraph()) {
 			if(_weakEntitiesHaveStrongRoots()) {
-				
+				if (_singleParentRelationshipsHaveParentAndTwoChildren()) {
+					console.log("Works");
+				} else {
+					console.log("Some relationships have no parent..");
+				}
 			} else {
 				console.log("Some weak entities do not have ID or EX connections to strong entities");
 			}
