@@ -57,13 +57,59 @@ function isValidERDiagram() {
 		return true;
 	}
 
+	function _hasStrongEntityAtRoot (object) {
+		var allConnectionsToObject = _getAllEdgesOfNode(object),
+			objectSelector = "#"+object;
+
+		if(isNormalEntityType($(objectSelector))) {
+			return true;
+		}
+
+		//nodeSet[object] = 1;
+		for (var i = 0; i < allConnectionsToObject.length; i++) {
+			var currentConnection = allConnectionsToObject[i];
+
+			var objectAtOtherEnd = currentConnection.endpoints[0].elementId == object ?
+								currentConnection.endpoints[1].elementId : currentConnection.endpoints[0].elementId;
+			if(currentConnection.getParameters().isParentConnection == true && isNormalWeakRelationshipType($(objectSelector)) ||
+			   currentConnection.getParameters().isParentConnection == false && !isNormalEntityType($(objectSelector)) &&
+			    isEntityType($(objectSelector))) {
+				return _hasStrongEntityAtRoot(objectAtOtherEnd);
+			} 
+
+		};
+		return false;
+	}
+	function _weakEntitiesHaveStrongRoots () {
+		//fetch all weak entities
+		//TODO: Highlight objects with highlighted content
+		//debugger;
+		var weakEntitySet = $(".weak-entity");
+
+		for (var i = 0; i < weakEntitySet.length; i++) {
+			var current = weakEntitySet[i].id;
+
+			//is connected to parent via ID or EX relationship
+
+			if(!_hasStrongEntityAtRoot(current))
+				return false;
+		}
+		return true;
+	}
+
 	function mainExecution () {
 		
 		//Check if the ER-Diagram is a connected graph
 		if(_isConnectedGraph()) {
-
+			if(_weakEntitiesHaveStrongRoots()) {
+				
+			} else {
+				console.log("Some weak entities do not have ID or EX connections to strong entities");
+			}
 		} else {
 			console.log("Some objects in the ER Diagram are not connected..");
 		}
 	}
+
+	mainExecution();
 }
