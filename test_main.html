@@ -736,11 +736,11 @@ $('#Add-REntity').click(function(){
     }
     else if(shouldCreateEntity($("#REName")[0].value))  {
         
-        $("#REName")[0].value = $("#REName")[0].value.replace(/\s/g,"-");
+        //$("#REName")[0].value = $("#REName")[0].value;
         allEntities.push($("#REName")[0].value);
         var entityName = $("#REName")[0].value,
             entitySuffix = "-entity",
-            entityID = "#"+entityName+"-"+entityCounter+entitySuffix;
+            entityID = "#"+entityName.replace(/\s/g,"-")+"-"+entityCounter+entitySuffix;
 
         $("#canvas").append(createEntityWithNameAndId(entityName,entityID.slice(1)));
         $( "#REName" )[0].value = "";
@@ -780,11 +780,9 @@ $('#Add-WEntity').click(function(){
     }    
     else if(shouldCreateEntity($("#WEName")[0].value)) 
     {
-        
-        $("#WEName")[0].value = $("#WEName")[0].value.replace(/\s/g,"-");
         var weakEntityName = $("#WEName")[0].value
             weakEntitySuffix = "-weak-entity",
-            weakEntityID = "#"+weakEntityName+"-"+entityCounter+weakEntitySuffix;
+            weakEntityID = "#"+weakEntityName.replace(/\s/g,"-")+"-"+entityCounter+weakEntitySuffix;
         allEntities.push(weakEntityName);
 
         $("#canvas").append(createWeakEntityWithNameAndId(weakEntityName,weakEntityID.slice(1)));
@@ -829,11 +827,10 @@ $('#Add-RRName').click(function(){
     else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  
     {   
         $("#RRName")[0].value = $("#RRName")[0].value.trim();
-        $("#RRName")[0].value = $("#RRName")[0].value.replace(/\s/g,"-");
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-relationship",
-            relationshipID = "#"+relationshipName+relationshipSuffix;
+            relationshipID = "#"+relationshipName.replace(/\s/g,"-")+relationshipSuffix;
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
@@ -957,12 +954,12 @@ $('#op-selected').click(function(){
 
 //adding Decomposed relationships
 $('#Add-DRName').click(function(){
-    $("#DRName")[0].value = $("#DRName")[0].value.trim().replace(/\s/g,"-");
+    $("#DRName")[0].value = $("#DRName")[0].value.trim();
     if(checkInputVal($("#DRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#DRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
-            relationshipID = "#"+relationshipName+relationshipSuffix;
+            relationshipID = "#"+relationshipName.replace(/\s/g,"-")+relationshipSuffix;
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createDRelationshipWithName(relationshipName,relationshipID.slice(1)));
@@ -999,12 +996,12 @@ $('#Add-DRName').click(function(){
 
 //adding EX relationships
 $('#Add-EXRName').click(function(){
-    $("#EXRName")[0].value = $("#EXRName")[0].value.trim().replace(/\s/g,"-");
+    $("#EXRName")[0].value = $("#EXRName")[0].value.trim();
     if(checkInputVal($("#EXRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#EXRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship",
-            relationshipID = "#"+relationshipName+relationshipSuffix;
+            relationshipID = "#"+relationshipName.replace(/\s/g,"-")+relationshipSuffix;
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createEXRelationshipWithName(relationshipName,relationshipID.slice(1)));
@@ -1041,12 +1038,12 @@ $('#Add-EXRName').click(function(){
 
 //adding ID relationships
 $('#Add-IDRName').click(function(){
-    $("#IDRName")[0].value = $("#IDRName")[0].value.trim().replace(/\s/g,"-");
+    $("#IDRName")[0].value = $("#IDRName")[0].value.trim();
     if(checkInputVal($("#IDRName")[0].value,allRelationships) == -1)  {
         
         var relationshipName = $("#IDRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-id-relationship",
-            relationshipID = "#"+relationshipName+relationshipSuffix;
+            relationshipID = "#"+relationshipName.replace(/\s/g,"-")+relationshipSuffix;
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createIDRelationshipWithName(relationshipName,relationshipID.slice(1)));
