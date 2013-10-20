@@ -19,7 +19,8 @@
 $(function() {
     /*
     TODO:
-        4. hiding of the connection drag images when inactive 
+        1. Replace all alerts with common error dialog trigger
+        2. hiding of the connection drag images when inactive 
     */
     // Storage variable
 
@@ -734,9 +735,9 @@ function shouldCreateEntity(name) {
 $('#Add-REntity').click(function(){
     $("#REName")[0].value = $("#REName")[0].value.trim();
 
-    if($("#REName")[0].value.indexOf("-") != -1)
+    if($("#REName")[0].value == "")
     {
-        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).text("Invalid name!");
         $( "#err-dialog" ).dialog();
     }
     else if(shouldCreateEntity($("#REName")[0].value))  {
@@ -778,9 +779,9 @@ $('#Add-REntity').click(function(){
 });
 $('#Add-WEntity').click(function(){
     $("#WEName")[0].value = $("#WEName")[0].value.trim();
-    if($("#WEName")[0].value.indexOf("-") != -1)
+    if($("#WEName")[0].value == "")
     {
-        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).text("Invalid name!");
         $( "#err-dialog" ).dialog();
     }    
     else if(shouldCreateEntity($("#WEName")[0].value)) 
@@ -824,14 +825,14 @@ $('#Add-WEntity').click(function(){
 //adding relationships
 $('#Add-RRName').click(function(){
 
-    if($("#RRName")[0].value.indexOf("-") != -1)
+    $("#RRName")[0].value = $("#RRName")[0].value.trim();
+    if($("#RRName")[0].value == "")
     {
-        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).text("Invalid name!");
         $( "#err-dialog" ).dialog();
     }
     else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  
     {   
-        $("#RRName")[0].value = $("#RRName")[0].value.trim();
         allRelationships.push($("#RRName")[0].value);
         var relationshipName = $("#RRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-relationship",
@@ -960,7 +961,7 @@ $('#op-selected').click(function(){
 //adding Decomposed relationships
 $('#Add-DRName').click(function(){
     $("#DRName")[0].value = $("#DRName")[0].value.trim();
-    if(checkInputVal($("#DRName")[0].value,allRelationships) == -1)  {
+    if($("#DRName")[0].value != "")  {
         
         var relationshipName = $("#DRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
@@ -1002,7 +1003,7 @@ $('#Add-DRName').click(function(){
 //adding EX relationships
 $('#Add-EXRName').click(function(){
     $("#EXRName")[0].value = $("#EXRName")[0].value.trim();
-    if(checkInputVal($("#EXRName")[0].value,allRelationships) == -1)  {
+    if($("#EXRName")[0].value != "")  {
         
         var relationshipName = $("#EXRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship",
@@ -1044,7 +1045,7 @@ $('#Add-EXRName').click(function(){
 //adding ID relationships
 $('#Add-IDRName').click(function(){
     $("#IDRName")[0].value = $("#IDRName")[0].value.trim();
-    if(checkInputVal($("#IDRName")[0].value,allRelationships) == -1)  {
+    if($("#IDRName")[0].value != "")  {
         
         var relationshipName = $("#IDRName")[0].value,
             relationshipSuffix = "-"+relationshipCounter+ "-id-relationship",
@@ -1098,9 +1099,9 @@ $( "#Add-Attribute-Entity" ).click(function() {
     /*var ops= ['qwerty','asdfgh'];
     $( '#tags' ).autocomplete({source: ops});
     $( "#dialog" ).dialog();*/
-    if($("#EAttrName")[0].value.indexOf("-") != -1)
+    if($("#EAttrName")[0].value == "")
     {
-        $( "#err-dialog" ).text("Contains '-'");
+        $( "#err-dialog" ).text("Invalid name!");
         $( "#err-dialog" ).dialog();
     }
     else
