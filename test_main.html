@@ -21,6 +21,7 @@ $(function() {
     TODO:
         1. Replace all alerts with common error dialog trigger
         2. hiding of the connection drag images when inactive 
+        4. Add proper box for confirm
     */
     // Storage variable
 
@@ -190,19 +191,27 @@ $(function() {
         string = string.replace(/&/g,'_2_');
         string = string.replace(/%/g,'_3_');
         string = string.replace(/%/g,'_4_');
+        string = string.replace(/\s/g,'-');
+        return string;
+    }
+    
+    function sanitizeName(string) {
+        string = string.replace(/\s+/g,' ');
+        return string;
     }
 
     function spawnErrorDialogWithMessage (errorMessage) {
         $( "#err-dialog" ).text(errorMessage);
         $( "#err-dialog" ).dialog();
     }
-    function getConnectionProperty(source, target, perimeterType) {
+    function getConnectionProperty(source, target, perimeterType, isContinuous) {
+        var anchorProp = isContinuous ? "Continuous" : ["Perimeter" , {shape : perimeterType}];
         var newProperty = {
                         source: source,
                         target: target,
                         paintStyle:defaultConnectionPaintStyle,
                         hoverPaintStyle:defaultOnHoverConnectionPaintStyle,
-                        anchor: "Continuous",
+                        anchor: anchorProp,
                         endpoint : "Dot",
                         endpointStyle : { radius : 1}
                     };
@@ -423,7 +432,7 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                     labelOverlay = [ "Label", { label : labelVal, location : 0.5, cssClass : "cardinality"}];
                             
-                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",true);
                     
                                     connectionProperty.overlays = [ labelOverlay];
                                     newConnection = jsPlumb.connect(connectionProperty);
@@ -470,7 +479,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                                         return false;
                                     }
 
-                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",false);
 
                                     if(overlayConfig != null) {
                                         connectionProperty.overlays = overlayConfig;
@@ -503,7 +512,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                         
                         var isNormalEntityConnection = (isNormalEntityType(QsourceObj)||isNormalEntityType(QtargetObj));
                             overlayConfig = null,
-                            isParentConnection = confirm("Press OK if parent connection, CANCEL otherwise");
+                            isParentConnection = null;
 
                         $("#attr2-dialog").dialog({
                             resizable : false,
@@ -534,7 +543,7 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                     }
 
-                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
+                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",false);
 
                                     if(overlayConfig != null) {
                                         connectionProperty.overlays = overlayConfig;
@@ -607,7 +616,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                                         break;
                                     }
 
-                                    connectionProperty = getConnectionProperty(attribObj,nonAttribObj,"Ellipse");
+                                    connectionProperty = getConnectionProperty(attribObj,nonAttribObj,"Ellipse",false);
                                     attributeEndpoint = jsPlumb.selectEndpoints({ source: attribObj});
                                     connectionProperty.overlays = overlayConfig;
                                     newConnection = jsPlumb.connect(connectionProperty);
@@ -657,8 +666,10 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                             labelOverlay = [ "Label", { label : labelVal, location : 0.5, cssClass : "cardinality"}];
                     
-                            connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond");
-            
+                            connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",true);
+                            connectionProperty.anchor = null;
+                            delete connectionProperty.anchor;
+                            connectionProperty.anchors = [ "Continuous", "Continuous"];
                             connectionProperty.overlays = [ labelOverlay];
                             newConnection = jsPlumb.connect(connectionProperty);
                             if(newConnection !== null) {
@@ -744,7 +755,7 @@ $('#Add-REntity').click(function(){
         
         //$("#REName")[0].value = $("#REName")[0].value;
         allEntities.push($("#REName")[0].value);
-        var entityName = $("#REName")[0].value,
+        var entityName = sanitizeName($("#REName")[0].value),
             entitySuffix = "-entity",
             entityID = "#"+sanitizeId(entityName)+"-"+entityCounter+entitySuffix;
 
@@ -786,7 +797,7 @@ $('#Add-WEntity').click(function(){
     }    
     else if(shouldCreateEntity($("#WEName")[0].value)) 
     {
-        var weakEntityName = $("#WEName")[0].value
+        var weakEntityName = sanitizeName($("#WEName")[0].value),
             weakEntitySuffix = "-weak-entity",
             weakEntityID = "#"+sanitizeId(weakEntityName)+"-"+entityCounter+weakEntitySuffix;
         allEntities.push(weakEntityName);
@@ -834,9 +845,10 @@ $('#Add-RRName').click(function(){
     else if(checkInputVal($("#RRName")[0].value,allRelationships) == -1)  
     {   
         allRelationships.push($("#RRName")[0].value);
-        var relationshipName = $("#RRName")[0].value,
+        var relationshipName = sanitizeName($("#RRName")[0].value),
             relationshipSuffix = "-"+relationshipCounter+ "-relationship",
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
+
 
         allRelationships.push(relationshipID);
         $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
@@ -963,7 +975,7 @@ $('#Add-DRName').click(function(){
     $("#DRName")[0].value = $("#DRName")[0].value.trim();
     if($("#DRName")[0].value != "")  {
         
-        var relationshipName = $("#DRName")[0].value,
+        var relationshipName = sanitizeName($("#DRName")[0].value),
             relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
 
@@ -1005,7 +1017,7 @@ $('#Add-EXRName').click(function(){
     $("#EXRName")[0].value = $("#EXRName")[0].value.trim();
     if($("#EXRName")[0].value != "")  {
         
-        var relationshipName = $("#EXRName")[0].value,
+        var relationshipName = sanitizeName($("#EXRName")[0].value),
             relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship",
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
 
@@ -1047,7 +1059,7 @@ $('#Add-IDRName').click(function(){
     $("#IDRName")[0].value = $("#IDRName")[0].value.trim();
     if($("#IDRName")[0].value != "")  {
         
-        var relationshipName = $("#IDRName")[0].value,
+        var relationshipName = sanitizeName($("#IDRName")[0].value),
             relationshipSuffix = "-"+relationshipCounter+ "-id-relationship",
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
 
@@ -1099,14 +1111,14 @@ $( "#Add-Attribute-Entity" ).click(function() {
     /*var ops= ['qwerty','asdfgh'];
     $( '#tags' ).autocomplete({source: ops});
     $( "#dialog" ).dialog();*/
-    if($("#EAttrName")[0].value == "")
+    if($("#EAttrName")[0].value.trim() == "")
     {
         $( "#err-dialog" ).text("Invalid name!");
         $( "#err-dialog" ).dialog();
     }
     else
     {
-        var attributeName = $("#EAttrName")[0].value.trim(),
+        var attributeName = sanitizeName($("#EAttrName")[0].value.trim()),
             attributeSuffix = "-"+attributeCounter+"-attribute",
             attributeID = "#"+sanitizeId(attributeName)+attributeSuffix;
 
@@ -1224,8 +1236,9 @@ A CS4221 project by P05 --unfinished version--
             </div>
         </div>
     </div>
-    <div id="canvas">
-    </div>
+        <div id="canvas">
+        </div>
+    
     </div>
     <div id="dialog" title="Attach to?" style="display:none;">
     <input id="tags" /><button class="a_button">Attach!</button>
