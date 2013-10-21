@@ -169,7 +169,9 @@ function isValidERDiagram() {
 			if(_weakEntitiesHaveStrongRoots()) {
 				if (_singleParentRelationshipsHaveParentAndTwoChildren()) {
 					if(_allRelationsHaveTwoNonAttributeConnections()) {
-						console.log("Works");
+						//if contains attributes make further analysis
+						//else leave it here?
+
 					} else {
 						console.log("Some relationships have < 2 entity connections");
 					}

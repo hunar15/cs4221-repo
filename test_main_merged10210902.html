@@ -84,8 +84,13 @@ $(function() {
                             //TODO: Properly validate values, for ex through universal validator?
                             spawnErrorDialogWithMessage("Invalid name!");
                         } else {
-                            if(editComponent(newName)) {
-                                $(this).dialog('close');
+                            var jObj = $("#"+current_component_div);
+                            if (isRegularRelationshipType(jObj) && isPresentRelationshipWithContent(newName)) {
+                                err_dialog("Relationship must have a unique name");
+                            } else {
+                                if(editComponent(newName)) {
+                                    $(this).dialog('close');
+                                }
                             }
                         }
                     },
@@ -282,6 +287,20 @@ $(function() {
         return (totalNumberOfConnections.length > 0);
     }
 
+    function isPresentRelationshipWithContent(content) {
+        var objectsWithContent = $("div > div[class='inner-text'] > strong").filter(function() { 
+                                        return $(this)[0].innerHTML == content;
+                                }).parent().parent();
+
+        for (var i = 0; i < objectsWithContent.length; i++) {
+            var currentObject = objectsWithContent[i].id;
+            if(isRegularRelationshipType($("#"+currentObject))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function isParentOfOPRelationship (entity) {
         var allConnections = jsPlumb.getConnections({source : entity})
                             .concat(jsPlumb.getConnections({target : entity}));
@@ -300,7 +319,7 @@ $(function() {
     function hasAttributeWithSameName(nonAttributeObject, attributeName) {
         var allConnections,
             //attributeName = $("#"+attributeObject.attr("id")+ " > div > strong").html(),
-            attributeSelector = $("strong:contains('"+attributeName+"')").parent().parent();
+            attributeSelector = $("div > div[class='inner-text'] > strong").filter(function(e) { return $(this)[0].innerHTML == attributeName }).parent().parent();
 
 
         allConnections = jsPlumb.getConnections({ source : attributeSelector, target : nonAttributeObject});
@@ -801,7 +820,9 @@ $radios.on('change',function(){
 });
 
 function shouldCreateEntity(name) {
-    var matchingObjects = $("strong:contains('"+name+"')").parent().parent();
+    var matchingObjects = $("div > div[class='inner-text'] > strong").filter(function() { 
+                                        return $(this)[0].innerHTML == name;
+                                }).parent().parent();
     if( matchingObjects.length != 0) {
         for( var i in matchingObjects) {
             if(isEntityType($(matchingObjects[i])))
@@ -942,13 +963,19 @@ function addRel(textbox,rType){
             return;
         }
         tb_in.value = sanitizeName(tb_in.value.trim());
-            
-        var relationshipName = tb_in.value,
+        
+        if(!isPresentRelationshipWithContent(tb_in.value)) {
+            var relationshipName = tb_in.value,
             relationshipSuffix = "-"+relationshipCounter+ "-relationship",
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
 
-        $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
-        tb_in.value = "";
+            $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
+            tb_in.value = "";
+        } else {
+            err_dialog("Relationship must have unique name!");
+            return;
+        }
+        
     }
     else if(rType == "ISA"){
         var relationshipSuffix = "-isa-relationship",
