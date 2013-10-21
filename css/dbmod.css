@@ -165,7 +165,7 @@ font-size: 15px;
 	border-radius: 50% / 50%;	
 }
 .endpoint-entity{
-    opacity: 0.2;
+    opacity: 0.1;
     transition: opacity 1s ease-in-out;
     -moz-transition: opacity 1s ease-in-out;
     -webkit-transition: opacity 1s ease-in-out;

@@ -44,37 +44,17 @@ function createRelationshipWithName (name, id) {
 	/*
 	Name is the unique identifier of the relationship
 	*/
-    var newEntity = "<div id=\""+id+"\" class=\"relationship\"";
-    
-    if(name.length >= 10 && name.length < 20)
-    {
-        newEntity = newEntity + " style=\"background-size:150px 150px; width:150px;" + 
-                    "height:150px; line-height:150px;\">" +
-                    getInnerTextHTMLContent(name)+
-					"</div>";
-    }
-    else if (name.length >= 20)
-    {
-        newEntity = newEntity + " style=\"background-size:200px 200px; width:200px;" + 
-                    "height:200px; line-height:200px;\">" +
-                    getInnerTextHTMLContent(name)+
-					"</div>";
-    }
-    else
-    {
-        newEntity = newEntity + ">" + getInnerTextHTMLContent(name)+"</div>";
-    }
-
-	return newEntity;
+    var newEntity = "<div id=\""+id+"\" class=\"relationship\"";    
+    return diamondExpand(newEntity,name);
 }
 
 function createISARelationshipWithId (id) {
 	/*
 	Id is the unique identifier of the relationship
 	*/
-    var newEntity = "<div id=\""+id+"\" class=\"isa-relationship\">"+getInnerTextHTMLContent("IS-A")+"</div>";
-
-	return newEntity;
+    var newEntity = "<div id=\""+id+"\" class=\"isa-relationship\"";
+    var name = "IS-A";
+	return diamondExpand(newEntity,name);
 }
 
 function createOPRelationshipWithIdAndType (id, type) {
@@ -94,9 +74,9 @@ function createDRelationshipWithName (name, id) {
 	Type is from {"Union","Intersection"}
 	*/
 	name = name.charAt(0).toUpperCase() + name.slice(1);
-    var newEntity = "<div id=\""+id+"\" class=\"dc-relationship\">" + getInnerTextHTMLContent("By " + name) +"</div>";
-
-	return newEntity;
+    name = "By " + name;
+    var newEntity = "<div id=\""+id+"\" class=\"dc-relationship\"";
+    return diamondExpand(newEntity,name);
 }
 
 function createEXRelationshipWithName (name, id) {
@@ -105,9 +85,8 @@ function createEXRelationshipWithName (name, id) {
 	Type is from {"Union","Intersection"}
 	*/
 	name = name.charAt(0).toUpperCase() + name.slice(1);
-    var newEntity = "<div id=\""+id+"\" class=\"ex-relationship\">" + getInnerTextHTMLContent("Has " + name) +"</div>";
-
-	return newEntity;
+    var newEntity = "<div id=\""+id+"\" class=\"ex-relationship\"";
+	return diamondExpand(newEntity,name);
 }
 
 function createIDRelationshipWithName (name, id) {
@@ -116,9 +95,32 @@ function createIDRelationshipWithName (name, id) {
 	Type is from {"Union","Intersection"}
 	*/
 	name = name.charAt(0).toUpperCase() + name.slice(1);
-    var newEntity = "<div id=\""+id+"\" class=\"id-relationship\">" + getInnerTextHTMLContent("Has " + name) +"</div>";
+    var newEntity = "<div id=\""+id+"\" class=\"id-relationship\"";
+    return diamondExpand(newEntity,name);
+    
+}
 
-	return newEntity;
+function diamondExpand(line,name){
+    var length = name.length;
+    if(length >= 10 && length < 15)
+    {
+        line = line + " style=\"background-size:110px 110px; width:110px;" + 
+                "height:110px; line-height:110px;\">" +
+                getInnerTextHTMLContent(name)+
+                "</div>";
+    }
+    else if (length >= 15)
+    {
+        line = line + " style=\"background-size:150px 150px; width:150px;" + 
+                "height:150px; line-height:150px;\">" +
+                getInnerTextHTMLContent(name)+
+                "</div>";
+    }
+    else
+    {
+        line = line + ">" + getInnerTextHTMLContent(name)+"</div>";
+    }
+    return line
 }
 
 function isEntityType (element) {
