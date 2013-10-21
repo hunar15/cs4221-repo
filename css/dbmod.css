@@ -166,15 +166,15 @@ font-size: 15px;
 }
 .endpoint-entity{
     opacity: 0.1;
-    transition: opacity 1s ease-in-out;
+    /*transition: opacity 1s ease-in-out;
     -moz-transition: opacity 1s ease-in-out;
-    -webkit-transition: opacity 1s ease-in-out;
+    -webkit-transition: opacity 1s ease-in-out;*/
 }
 .endpoint-entity:hover{
     opacity: 1.0;
-    transition: opacity 1s ease-in-out;
+    /*transition: opacity 1s ease-in-out;
     -moz-transition: opacity 1s ease-in-out;
-    -webkit-transition: opacity 1s ease-in-out;
+    -webkit-transition: opacity 1s ease-in-out;*/
 }
 .endpoint-no-display
 {

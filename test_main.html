@@ -13,7 +13,7 @@
 <script src="js/contextMenu.js"></script>
 <script src="js/contextMenu.min.js"></script>
 <script src="js/html2canvas.js"></script>
-<script type="text/javascript" src="js/jquery.jsPlumb-1.5.3.js "></script>
+<script type="text/javascript" src="js/jquery.jsPlumb-1.5.3-min.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script type="text/javascript" src="js/er-validate.js "></script>
 <script>
@@ -768,9 +768,9 @@ $('#Add-REntity').click(function(){
         jsPlumb.addEndpoint($(entityID), {
             endpoint : ["Image", defaultEndpointProperties],
             anchor: "Right",
-            containment: entityName+entitySuffix,
-            ConnectionsDetachable:false,
-            isSource: true
+            isSource: true,
+            container: entityID.slice(1),
+            ConnectionsDetachable:false
             //isTarget : true
         });
         jsPlumb.makeTarget($(entityID), {

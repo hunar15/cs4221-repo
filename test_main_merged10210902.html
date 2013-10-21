@@ -282,6 +282,21 @@ $(function() {
         return (totalNumberOfConnections.length > 0);
     }
 
+    function isParentOfOPRelationship (entity) {
+        var allConnections = jsPlumb.getConnections({source : entity})
+                            .concat(jsPlumb.getConnections({target : entity}));
+
+        for (var i = 0; i < allConnections.length; i++) {
+            var currentConnection = allConnections[i];
+
+            var otherEndpoint = currentConnection.endpoints[0].elementId = entity.id ?
+                            currentConnection.endpoints[1].elementId : currentConnection.endpoints[0].elementId;
+
+            if(isOPRelationshipType($("#"+otherEndpoint)) && currentConnection.getParameters().isParentConnection)
+                return true;
+        }
+        return false;
+    }
     function hasAttributeWithSameName(nonAttributeObject, attributeName) {
         var allConnections,
             //attributeName = $("#"+attributeObject.attr("id")+ " > div > strong").html(),
@@ -520,41 +535,46 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                     isParentConnection = (selectedOption == "0") ? true : false;
 
-                                    if (!hasParentConnection(relationShipObj) && isParentConnection) {
-                                        overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
-                                    } else if(hasParentConnection(relationShipObj) && isParentConnection) {
-                                        alert("Cannot have more than 1 parent connection!!");
-                                        return false;
+                                    if (isParentOfOPRelationship(entityObj) && isParentConnection) {
+                                        spawnErrorDialogWithMessage("Entity cannot be parent of more than 1 OP Relationship objects");
+                                    } else {
+                                        if (!hasParentConnection(relationShipObj) && isParentConnection) {
+                                            overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
+                                        } else if(hasParentConnection(relationShipObj) && isParentConnection) {
+                                            alert("Cannot have more than 1 parent connection!!");
+                                            return false;
+                                        }
+
+                                        connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",false);
+
+                                        if(overlayConfig != null) {
+                                            connectionProperty.overlays = overlayConfig;
+                                        }
+
+                                        connectionProperty.parameters = {};
+                                        connectionProperty.parameters.isParentConnection = isParentConnection;
+
+                                        newConnection = jsPlumb.connect(connectionProperty);
+
+                                        if(newConnection !== null) {
+                                             newConnection.bind('click', function (connection) {
+                                                var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
+
+                                                if(deleteConnection) {
+                                                    jsPlumb.detach(connection);
+                                                }
+                                            });
+                                        }
+
+                                        $(this).dialog('close');
                                     }
-
-                                    connectionProperty = getConnectionProperty(relationShipObj,entityObj,"Diamond",false);
-
-                                    if(overlayConfig != null) {
-                                        connectionProperty.overlays = overlayConfig;
-                                    }
-
-                                    connectionProperty.parameters = {};
-                                    connectionProperty.parameters.isParentConnection = isParentConnection;
-
-                                    newConnection = jsPlumb.connect(connectionProperty);
-
-                                    if(newConnection !== null) {
-                                         newConnection.bind('click', function (connection) {
-                                            var deleteConnection = confirm("Select OK to delete this connection, CANCEL otherwise");
-
-                                            if(deleteConnection) {
-                                                jsPlumb.detach(connection);
-                                            }
-                                        });
-                                    }
-
-                                    $(this).dialog('close');
                                 },
                                 "CANCEL" : function () {
                                     $(this).dialog('close');
                                 }
                             }
                         });
+
 
                     } else if (isNormalWeakRelationshipType(relationShipObj)) {
                         
