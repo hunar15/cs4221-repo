@@ -541,7 +541,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                                         if (!hasParentConnection(relationShipObj) && isParentConnection) {
                                             overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
                                         } else if(hasParentConnection(relationShipObj) && isParentConnection) {
-                                            alert("Cannot have more than 1 parent connection!!");
+                                            spawnErrorDialogWithMessage("Cannot have more than 1 parent connection!!");
                                             return false;
                                         }
 

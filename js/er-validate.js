@@ -97,6 +97,43 @@ function isValidERDiagram() {
 		return true;
 	}
 
+	function _allRelationsHaveTwoNonAttributeConnections() {
+		var allRelationships = $("div[class*='relationship']");
+		for (var i = 0; i < allRelationships.length; i++) {
+			var currentRelationship = allRelationships[i],
+				entityCounter = 0;
+
+			_forAllConnectionsToObjectPerform(currentRelationship, function (currentConnection, otherNode) {
+				if(isEntityType($("#"+otherNode))) {
+					entityCounter++;
+				}
+				return true;
+			});
+			if(entityCounter < 2) {
+				return false;
+			}	
+		}
+		return true;
+	}
+
+	function _forAllConnectionsToObjectPerform( object, call) {
+		//object is a Jquery object
+
+		var allRelationships = _getAllEdgesOfNode(object);
+
+		for (var i = 0; i < allRelationships.length; i++) {
+			var currentConnection = allRelationships[i],
+
+			otherNode = currentConnection.endpoints[0].elementId == object.id ?
+							currentConnection.endpoints[1].elementId : currentConnection.endpoints[0].elementId;
+
+			if(call(currentConnection, otherNode)) {
+				continue;
+			} else {
+				break;
+			}
+		}
+	}
 	function _singleParentRelationshipsHaveParentAndTwoChildren () {
 		var allRelationships = $(".op-relationship, .isa-relationship, .dc-relationship");
 
@@ -131,7 +168,11 @@ function isValidERDiagram() {
 		if(_isConnectedGraph()) {
 			if(_weakEntitiesHaveStrongRoots()) {
 				if (_singleParentRelationshipsHaveParentAndTwoChildren()) {
-					console.log("Works");
+					if(_allRelationsHaveTwoNonAttributeConnections()) {
+						console.log("Works");
+					} else {
+						console.log("Some relationships have < 2 entity connections");
+					}
 				} else {
 					console.log("Some relationships have no parent..");
 				}
