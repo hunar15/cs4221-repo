@@ -1170,7 +1170,21 @@ $('input[name=rtype-select]').on('click',function(){
 $("#verify-select").click(function(){
     isValidERDiagram();
 });
+    
+    var initPosition = $("#sidebar").offset().top;
+    $(window).scroll(function() {
+        var distanceFromTop = $("#sidebar").offset().top - $(window).scrollTop();
 
+        if(distanceFromTop < 10) {
+            //initPosition = distanceFromTop;
+            $("#sidebar").css({top : 10, position : "fixed"});
+            positionFixed = true;
+        } 
+        if($("#sidebar").offset().top <= 150) {
+            $("#sidebar").css({top : 130, position : "absolute"});
+            positionFixed = false;
+        }
+    });
 });</script>
 </head>
 <body>
