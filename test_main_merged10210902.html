@@ -464,6 +464,13 @@ $(function() {
         return false;
     }
 
+function positionAndRedraw (objectId) {
+    // body...
+    var objectSelector = "#"+objectId;
+    $(objectSelector).css({left : ((2*$("#canvas").position().left + $("#canvas").width())/2)-($(objectSelector).width()/2), top : ($(window).scrollTop() + $("#canvas").height())/2});
+    jsPlumb.repaint(objectId);
+}
+
     jsPlumb.Defaults.Container = $("#canvas");
     jsPlumb.Defaults.Connector = "Straight";
     jsPlumb.Defaults.PaintStyle = defaultConnectionPaintStyle;
@@ -915,12 +922,14 @@ function addEntity(textbox,eType){
             var entityID = "#"+sanitizeId(entityName)+"-"+entityCounter+entitySuffix;
                 
             $("#canvas").append(createEntityWithNameAndId(entityName,entityID.slice(1)));
+            positionAndRedraw(entityID.slice(1));
         }
         else if(eType == "W"){
             var entitySuffix = "-weak-entity";
             var entityID = "#"+sanitizeId(entityName)+"-"+entityCounter+entitySuffix;
 
             $("#canvas").append(createWeakEntityWithNameAndId(entityName,entityID.slice(1)));
+            positionAndRedraw(entityID.slice(1));
         }
         else{
             err_dialog("Error with Entity Type.");
@@ -955,6 +964,7 @@ function addEntity(textbox,eType){
 }
 //adding relationships
 function addRel(textbox,rType){
+    var relationshipID = null;
     if(rType == "R"){
         var tb_in = $("#" + textbox)[0];
     
@@ -966,7 +976,7 @@ function addRel(textbox,rType){
         
         if(!isPresentRelationshipWithContent(tb_in.value)) {
             var relationshipName = tb_in.value,
-            relationshipSuffix = "-"+relationshipCounter+ "-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-relationship";
             relationshipID = "#"+sanitizeId(relationshipName)+relationshipSuffix;
 
             $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
@@ -978,12 +988,12 @@ function addRel(textbox,rType){
         
     }
     else if(rType == "ISA"){
-        var relationshipSuffix = "-isa-relationship",
+        var relationshipSuffix = "-isa-relationship";
             relationshipID = "#"+relationshipCounter+relationshipSuffix;
         $("#canvas").append(createISARelationshipWithId(relationshipID.slice(1)));
     }
     else if(rType == "union" || rType == "intersection"){
-        var relationshipSuffix = "-"+rType+"-op-relationship",
+        var relationshipSuffix = "-"+rType+"-op-relationship";
             relationshipID = "#"+relationshipCounter+relationshipSuffix;
         $("#canvas").append(createOPRelationshipWithIdAndType(relationshipID.slice(1),rType));
     }
@@ -993,7 +1003,7 @@ function addRel(textbox,rType){
         tb_in.value = tb_in.value.trim();
             
         var relationshipName = tb_in.value
-            relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
         $("#canvas").append(createDRelationshipWithName(relationshipName,relationshipID.slice(1)));
         tb_in.value = "";
@@ -1007,7 +1017,7 @@ function addRel(textbox,rType){
         }
         tb_in.value = tb_in.value.trim();
         var relationshipName = tb_in.value,
-            relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
         $("#canvas").append(createEXRelationshipWithName(relationshipName,relationshipID.slice(1)));
         tb_in.value = "";
@@ -1021,12 +1031,13 @@ function addRel(textbox,rType){
         }
         tb_in.value = tb_in.value.trim();
         var relationshipName = tb_in.value,
-            relationshipSuffix = "-"+relationshipCounter+ "-id-relationship",
+            relationshipSuffix = "-"+relationshipCounter+ "-id-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
         $("#canvas").append(createIDRelationshipWithName(relationshipName,relationshipID.slice(1)));
         tb_in.value = "";
     }
-        
+    
+    positionAndRedraw(relationshipID.slice(1));
     $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 
     jsPlumb.addEndpoint($(relationshipID), {
@@ -1086,7 +1097,7 @@ function addAttr(textbox){
             attributeID = "#"+sanitizeId(attributeName)+attributeSuffix;
         //attributeName = attributeName.replace(" ","-");
         $("#canvas").append(createAttributeWithNameAndId(attributeName,attributeID.slice(1)));
-
+        positionAndRedraw(attributeID.slice(1));
         tb_in.value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
 

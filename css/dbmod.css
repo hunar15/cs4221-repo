@@ -66,7 +66,8 @@ float: right;
 width: 75%;
 border-style: double;
 height: 800px;
-background-color: white;
+background-image: url('../img/cssPattern.png');
+background-repeat: repeat;
 }
 
 #topheader {
