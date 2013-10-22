@@ -16,6 +16,10 @@
 <script type="text/javascript" src="js/jquery.jsPlumb-1.5.3.js "></script>
 <script type="text/javascript" src="js/jsPlumbSetup.js "></script>
 <script type="text/javascript" src="js/er-validate.js "></script>
+<script type="text/javascript" src="js/rgbcolor.js"></script> 
+<script type="text/javascript" src="js/StackBlur.js"></script>
+<script type="text/javascript" src="js/canvg.js"></script> 
+
 <script>
 $(function() {
     /*
@@ -79,14 +83,14 @@ $(function() {
                 modal : false,
                 buttons : {
                     "OK" : function () {
-                        var newName = $("#edit-new-name").val().trim();
+                        var newName = sanitizeName($("#edit-new-name").val().trim());
                         if(newName == "") {
                             //TODO: Properly validate values, for ex through universal validator?
                             spawnErrorDialogWithMessage("Invalid name!");
                         } else {
                             var jObj = $("#"+current_component_div);
                             if (isRegularRelationshipType(jObj) && isPresentRelationshipWithContent(newName)) {
-                                err_dialog("Relationship must have a unique name");
+                                _setStatusMessage("Relationship must have a unique name",true);
                             } else {
                                 if(editComponent(newName)) {
                                     $(this).dialog('close');
@@ -119,7 +123,7 @@ $(function() {
                 modal : false,
                 buttons : {
                     "OK" : function () {
-                        var newName = $("#edit-new-name").val().trim();
+                        var newName = sanitizeName($("#edit-new-name").val().trim());
                         if(newName == "") {
                             //TODO: Properly validate values, for ex through universal validator?
                             spawnErrorDialogWithMessage("Invalid name!");
@@ -239,7 +243,7 @@ $(function() {
     function editComponent(name) {
        // debugger;
         if(isEntityType($("#"+current_component_div)) && !shouldCreateEntity(name)) {
-            spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
+            _setStatusMessage(entityAlreadyExistsMessage,true);
             return false;
         } else {
             $("#"+current_component_div+" > div > strong").html(name);
@@ -258,6 +262,7 @@ $(function() {
     }
     
     function sanitizeName(string) {
+        string = string.slice(0,1).toUpperCase() + string.slice(1);
         string = string.replace(/\s+/g,' ');
         return string;
     }
@@ -289,7 +294,7 @@ $(function() {
 
     function isPresentRelationshipWithContent(content) {
         var objectsWithContent = $("div > div[class='inner-text'] > strong").filter(function() { 
-                                        return $(this)[0].innerHTML == content;
+                                        return $(this)[0].innerHTML.toLowerCase() == content.toLowerCase();
                                 }).parent().parent();
 
         for (var i = 0; i < objectsWithContent.length; i++) {
@@ -501,7 +506,7 @@ jsPlumb.bind('beforeDrop', function (info) {
         if( info.sourceId != info.targetId) {
             if(!doesConnectionExist(QsourceObj,QtargetObj)) {
                 if(isEntityType(QsourceObj) && isEntityType(QtargetObj)) {
-                    alert("Cannot directly join 2 entity types");
+                    _setStatusMessage("Cannot directly join 2 entity types",true);
                 } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
                             (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
                     
@@ -619,17 +624,17 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                     if(isParentConnection) {
                                         if (hasParentConnection(relationShipObj)) {
-                                            alert("Cannot have more than 1 parent connections");
+                                            _setStatusMessage("Cannot have more than 1 parent connections",true);
                                             return false;
                                         } else {
                                             //no overlays for parent connection
                                         }
                                     } else {
                                         if (isNormalEntityConnection ) {
-                                            alert("Cannot create non-parent connection with normal entity.");
+                                            _setStatusMessage("Cannot create non-parent connection with normal entity.",true);
                                             return false;
                                         } else if ((getConnectionCount(relationShipObj) > 0) && !hasParentConnection(relationShipObj) ) {
-                                            alert("Cannot have 2 child connections.")
+                                            _setStatusMessage("Cannot have 2 child connections.",true)
                                             return false;
                                         } else {
                                             overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
@@ -738,7 +743,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                             }
                         });
                     } else {
-                        alert("Another attribute with the same name already exists!!");
+                        _setStatusMessage("Another attribute with the same name already exists!!",true);
                         return false;
                     }
                     
@@ -783,14 +788,14 @@ jsPlumb.bind('beforeDrop', function (info) {
                     }
                 });
             } else {
-                alert("A connection already exists between the source and the target!!");
+                _setStatusMessage("A connection already exists between the source and the target!!",true);
             }
         } else {
-            alert("Cannot create a connection between an object and itself");
+            _setStatusMessage("Cannot create a connection between an object and itself",true);
         }
         
     } else {
-        alert("One of the connection elements has reached its connection limit!!");
+        _setStatusMessage("One of the connection elements has reached its connection limit!!",true);
     }
 
     
@@ -828,7 +833,7 @@ $radios.on('change',function(){
 
 function shouldCreateEntity(name) {
     var matchingObjects = $("div > div[class='inner-text'] > strong").filter(function() { 
-                                        return $(this)[0].innerHTML == name;
+                                        return $(this)[0].innerHTML.toLowerCase() == name.toLowerCase();
                                 }).parent().parent();
     if( matchingObjects.length != 0) {
         for( var i in matchingObjects) {
@@ -899,7 +904,7 @@ $( "#Add-Attribute-Entity" ).click(function() {
 
 function wrongName(text){
     if( text == ""){
-        err_dialog("Please input a name!");
+        _setStatusMessage("Please input a name!",true);
         return 1
     }
     return 0
@@ -908,10 +913,10 @@ function wrongName(text){
 //REFAC
 function addEntity(textbox,eType){
     var tb_in = $("#" + textbox)[0];
-    tb_in.value = tb_in.value.trim();
+    tb_in.value = sanitizeName(tb_in.value.trim());
 
     if(tb_in.value == ""){
-        err_dialog("Entity must have a name!");
+        _setStatusMessage("Entity must have a name!",true);
         return;
     }
     else if(shouldCreateEntity(tb_in.value)) {
@@ -932,7 +937,7 @@ function addEntity(textbox,eType){
             positionAndRedraw(entityID.slice(1));
         }
         else{
-            err_dialog("Error with Entity Type.");
+            _setStatusMessage("Error with Entity Type.",true);
         }
         tb_in.value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
@@ -959,7 +964,7 @@ function addEntity(textbox,eType){
         $(entityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
-        spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
+        _setStatusMessage(entityAlreadyExistsMessage,true);
     }
 }
 //adding relationships
@@ -969,7 +974,7 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
         tb_in.value = sanitizeName(tb_in.value.trim());
@@ -982,7 +987,7 @@ function addRel(textbox,rType){
             $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
             tb_in.value = "";
         } else {
-            err_dialog("Relationship must have unique name!");
+            _setStatusMessage("Relationship must have unique name!",true);
             return;
         }
         
@@ -1000,7 +1005,7 @@ function addRel(textbox,rType){
     else if(rType == "DECOM"){
         var tb_in = $("#" + textbox)[0];
     
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
             
         var relationshipName = tb_in.value
             relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship";
@@ -1012,10 +1017,10 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
         var relationshipName = tb_in.value,
             relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
@@ -1026,10 +1031,10 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
         var relationshipName = tb_in.value,
             relationshipSuffix = "-"+relationshipCounter+ "-id-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
@@ -1087,7 +1092,7 @@ function addAttr(textbox){
     console.log(tb_in);
     if(tb_in.value == "")
     {
-        err_dialog("Attribute must have a name!");
+        _setStatusMessage("Attribute must have a name!",true);
         return;
     }
     else
@@ -1124,9 +1129,6 @@ function addAttr(textbox){
     }
 }
 
-//invoke tabs
-$( "#tabs" ).tabs();
-
 //universal left-click
 $(document).bind("mouseup", function(e) {
     if (e.which == 1) {  
@@ -1141,11 +1143,31 @@ $(document).bind("mouseup", function(e) {
     }
 });
 
+//Screen Capture functions
 $("#snapshot-select").click( function(){
+    var svgTags = $("._jsPlumb_connector");
+    for (var i=0; i<svgTags.length; i++) {
+        var svgTag = svgTags[i];
+        var c = document.createElement('canvas');
+        styleline = 'width: ' + svgTag.clientWidth + 
+                    '; height: ' + svgTag.clientHeight + 
+                    '; ' + svgTag.style.cssText;
+        c.setAttribute('style',styleline);
+        svgTag.parentNode.insertBefore(c, svgTag);
+        var div = document.createElement('div');
+        div.appendChild(svgTag.cloneNode());
+        canvg(c, div.innerHTML);
+    }
     html2canvas($('#canvas'), {
         onrendered: function(canvas) {
             var img = canvas.toDataURL();
             window.open(img);
+            //clean up created divs from canvg
+            var canvases = $("canvas");
+            for (var i=0; i<canvases.length; i++) {
+                var divN = canvases[i];
+                divN.remove();
+            }
         }
     });
 });
@@ -1177,9 +1199,14 @@ $('input[name=rtype-select]').on('click',function(){
     }
 });
 
+$("#home").click(function(){
+    var url = "bernstein&more.html";
+    $(location).attr('href', url);
+});
+
 //bind the validating function to the button
 $("#verify-select").click(function(){
-    isValidERDiagram();
+    isValidERDiagram($("#status-bar"));
 });
     
     var initPosition = $("#sidebar").offset().top;
@@ -1192,162 +1219,143 @@ $("#verify-select").click(function(){
             positionFixed = true;
         } 
         if($("#sidebar").offset().top <= 150) {
-            $("#sidebar").css({top : 130, position : "absolute"});
+            $("#sidebar").css({top : 67, position : "absolute"});
             positionFixed = false;
         }
     });
 });</script>
 </head>
 <body>
-<div id="topheader">
-A CS4221 project by P05 --unfinished version--
-</div>
-    
-<div id="tabs">
-    <ul>
-    <li><a href="#tabs-ERD">ERD view</a></li>
-    <li><a href="#tabs-Normal">Normal view</a></li>
-    </ul>
-    <div id="tabs-ERD">
-    <h1>Welcome to DBMod!</h1>
-    <p>Design your very own ER-diagrams and we will verify them for you!</p>
-    <div id="content">
-    <div id="sidebar">
-    <div id="nestedAccordion">
-    <h2>ADD ENTITY</h2>
-            <div>
-            <h3 class="subheader">Regular Entity</h3>
-                <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity" maxlength="20">
-                <button id="Add-REntity" class="a_button">Add it!</button></div>
-            <h3 class="subheader">Weak Entity</h3>
-                <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity" maxlength="20">
-                <button id="Add-WEntity" class="a_button">Add it!</button></div>
-            </div>
-            <h2>ADD RELATIONSHIP</h2>
-            <div>
-            <h3 class="subheader">Regular Relationship</h3>
-            <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship" maxlength="20">
-            <button id="Add-RRName" class="a_button">Add it!</button></div>
-            <h3 class="subheader">ISA Relationship</h3>
-            <div><button id="Add-ISARName" class="a_button">Add it!</button></div>
-            <h3 class="subheader">OP Relationship</h3>
-            <div><button id="Add-OPR" class="a_button">Add it!</button></div>
-            <h3 class="subheader">Decomp Relationship</h3>
-            <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship" maxlength="20">
-            <button id="Add-DRName" class="a_button">Add it!</button></div>
-            <h3 class="subheader">EX Relationship</h3>
-            <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship" maxlength="20">
-            <button id="Add-EXRName" class="a_button">Add it!</button></div>
-            <h3 class="subheader">ID Relationship</h3>
-            <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship" maxlength="20">
-            <button id="Add-IDRName" class="a_button">Add it!</button></div>
-            </div>
-            <h2>ADD ATTRIBUTE</h2>
-            <div>
-            <input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute" maxlength="20">
-            <p />
-            <button id="Add-Attribute-Entity" class="a_button">Add it!</button>
-            </div>
-            <h2>OTHER OPTIONS</h2>
-            <div>
-            <button id="verify-select" class="a_button">Verify diagram!</button>
-            <p />
-            <button id="snapshot-select" class="a_button">Screen Capture!</button>
-            </div>
+<div>
+<div id="status-bar" class="status ui-state-highlight">Welcome to DBMod!</div>
+<div id="content">
+<div id="sidebar">
+<div id="nestedAccordion">
+<h2>ADD ENTITY</h2>
+        <div>
+        <h3 class="subheader">Regular Entity</h3>
+            <div><input type="text" name="REName" id="REName" title="Name of New Regular Entity" maxlength="20">
+            <button id="Add-REntity" class="a_button">Add it!</button></div>
+        <h3 class="subheader">Weak Entity</h3>
+            <div><input type="text" name="WEName" id="WEName" title="Name of New Weak Entity" maxlength="20">
+            <button id="Add-WEntity" class="a_button">Add it!</button></div>
+        </div>
+        <h2>ADD RELATIONSHIP</h2>
+        <div>
+        <h3 class="subheader">Regular Relationship</h3>
+        <div><input type="text" name="RRName" id="RRName" title="Name of New Regular Relationship" maxlength="20">
+        <button id="Add-RRName" class="a_button">Add it!</button></div>
+        <h3 class="subheader">ISA Relationship</h3>
+        <div><button id="Add-ISARName" class="a_button">Add it!</button></div>
+        <h3 class="subheader">OP Relationship</h3>
+        <div><button id="Add-OPR" class="a_button">Add it!</button></div>
+        <h3 class="subheader">Decomp Relationship</h3>
+        <div><input type="text" name="DRName" id="DRName" title="Name of New Decomp Relationship" maxlength="20">
+        <button id="Add-DRName" class="a_button">Add it!</button></div>
+        <h3 class="subheader">EX Relationship</h3>
+        <div><input type="text" name="EXRName" id="EXRName" title="Name of New EX Relationship" maxlength="20">
+        <button id="Add-EXRName" class="a_button">Add it!</button></div>
+        <h3 class="subheader">ID Relationship</h3>
+        <div><input type="text" name="IDRName" id="IDRName" title="Name of New ID Relationship" maxlength="20">
+        <button id="Add-IDRName" class="a_button">Add it!</button></div>
+        </div>
+        <h2>ADD ATTRIBUTE</h2>
+        <div>
+        <input type="text" name="EAttrName" id="EAttrName" title="Name of Attribute" maxlength="20">
+        <p />
+        <button id="Add-Attribute-Entity" class="a_button">Add it!</button>
+        </div>
+        <h2>OTHER OPTIONS</h2>
+        <div>
+        <button id="verify-select" class="a_button">Verify diagram!</button>
+        <p />
+        <button id="snapshot-select" class="a_button">Screen Capture!</button>
+        <p />
+        <button id="home" class="a_button"><a href="bernstein&more.html">Back home</a></button>
         </div>
     </div>
-    <div id="canvas">
-    </div>
-    </div>
-    <div id="dialog" title="Attach to?" style="display:none;">
-    <input id="tags" /><button class="a_button">Attach!</button>
-    </div>
-    <div id="add-entity-dialog" title="Added Entity" style="display:none;">
-    </div>
-    <div id="err-dialog" title="Error!" style="display:none;">
-    <p>Please check your input!</p>
-    </div>
-    <div id="op-dialog" title="Choose Type of Operation" style="display:none;">
-        <input type="radio" name="OP-select" value="0" checked> Union
-        <input type="radio" name="OP-select" value="1" > Intersection<br><br>
-        <button id="op-selected" class="a_button">Add it!</button>
-    </div>
-
-    <div id="attr0-dialog" title="Choose Cardinality of Edge" style="display:none;">
-        <input type="radio" name="attr0-select" value="1" checked>1</input>
-        <br />
-        <input type="radio" name="attr0-select" value="m" >m</input>
-        <!--button id="attr0-selected" class="a_button">Edit it!</button-->
-    </div>
-    
-    <div id="attr1-dialog" title="Choose Cardinality of Attribute" style="display:none;">
-        The Attribute is: 
-        <input type="radio" name="attr1-select" value="0" checked> 1 - 1
-        <input type="radio" name="attr1-select" value="1" > 1 - m
-        <input type="radio" name="attr1-select" value="2" > m - 1
-        <input type="radio" name="attr1-select" value="3" > m - m<br><br>
-    </div>
-
-    <div id="attr2-dialog" title="Choose Cardinality of Attribute" style="display:none;">
-        Select the role of parent in the new connection : 
-        <br />
-        <input type="radio" name="attr1-select" value="0" checked> Parent entity
-        <input type="radio" name="attr1-select" value="1" > Child entity
-        <br />
-    </div>
-    <div id="entityadd-dialog" title="Add Entity" style="display:none;">
-        Select entity type : 
-        <br />
-        <input type="radio" name="etype-select" value="0" checked> Regular
-        <input type="radio" name="etype-select" value="1" > Weak
-        <br />
-        <br />
-        Entity Name :
-        <input type="text" name="cm_EName" id="cm_EName" maxlength="20">
-        <br />
-        
-    </div>
-    <div id="reladd-dialog" title="Add Relationship" style="display:none;">
-        Select relationship type : 
-        <br />
-        <input type="radio" name="rtype-select" value="0" checked> Regular
-        <br />
-        <input type="radio" name="rtype-select" value="1" > IS-A
-        <br />
-        <input type="radio" name="rtype-select" value="2" > OP: Union
-        <br />
-        <input type="radio" name="rtype-select" value="3" > OP: Intersection
-        <br/>
-        <input type="radio" name="rtype-select" value="4" > Decomposition
-        <br/>
-        <input type="radio" name="rtype-select" value="5" > EX
-        <br />
-        <input type="radio" name="rtype-select" value="6" > ID
-        <br />
-        <br />
-        Relationship Name :
-        <input type="text" name="cm_RName" id="cm_RName"  maxlength="20">
-        <br />        
-    </div>
-    <div id="attradd-dialog" title="Add Entity" style="display:none;">
-        Attribute Name :
-        <input type="text" name="cm_AName" id="cm_AName"  maxlength="20">
-        <br />        
-    </div>
-    <div id="edit-dialog" title="Choose New Name" style="display:none;">
-        Select the new name of the object :
-        <br />
-        <input type="text" placeholder="New name" id="edit-new-name" maxlength="20"></input>
-        <br />
-    </div>
-    
+</div>
+<div id="canvas">
+</div>
+</div>
+<div id="add-entity-dialog" title="Added Entity" style="display:none;">
+</div>
+<div id="err-dialog" title="Error!" style="display:none;">
+<p>Please check your input!</p>
+</div>
+<div id="op-dialog" title="Choose Type of Operation" style="display:none;">
+    <input type="radio" name="OP-select" value="0" checked> Union
+    <input type="radio" name="OP-select" value="1" > Intersection<br><br>
+    <button id="op-selected" class="a_button">Add it!</button>
 </div>
 
-<div id="tabs-Normal">
-<p>In this view you can specify FDs and MVDs for us to do normalization</p>
-
+<div id="attr0-dialog" title="Choose Cardinality of Edge" style="display:none;">
+    <input type="radio" name="attr0-select" value="1" checked>1</input>
+    <br />
+    <input type="radio" name="attr0-select" value="m" >m</input>
+    <!--button id="attr0-selected" class="a_button">Edit it!</button-->
 </div>
-</div>   
+
+<div id="attr1-dialog" title="Choose Cardinality of Attribute" style="display:none;">
+    The Attribute is: 
+    <input type="radio" name="attr1-select" value="0" checked> 1 - 1
+    <input type="radio" name="attr1-select" value="1" > 1 - m
+    <input type="radio" name="attr1-select" value="2" > m - 1
+    <input type="radio" name="attr1-select" value="3" > m - m<br><br>
+</div>
+
+<div id="attr2-dialog" title="Choose Cardinality of Attribute" style="display:none;">
+    Select the role of parent in the new connection : 
+    <br />
+    <input type="radio" name="attr1-select" value="0" checked> Parent entity
+    <input type="radio" name="attr1-select" value="1" > Child entity
+    <br />
+</div>
+<div id="entityadd-dialog" title="Add Entity" style="display:none;">
+    Select entity type : 
+    <br />
+    <input type="radio" name="etype-select" value="0" checked> Regular
+    <input type="radio" name="etype-select" value="1" > Weak
+    <br />
+    <br />
+    Entity Name :
+    <input type="text" name="cm_EName" id="cm_EName" maxlength="20">
+    <br />
     
+</div>
+<div id="reladd-dialog" title="Add Relationship" style="display:none;">
+    Select relationship type : 
+    <br />
+    <input type="radio" name="rtype-select" value="0" checked> Regular
+    <br />
+    <input type="radio" name="rtype-select" value="1" > IS-A
+    <br />
+    <input type="radio" name="rtype-select" value="2" > OP: Union
+    <br />
+    <input type="radio" name="rtype-select" value="3" > OP: Intersection
+    <br/>
+    <input type="radio" name="rtype-select" value="4" > Decomposition
+    <br/>
+    <input type="radio" name="rtype-select" value="5" > EX
+    <br />
+    <input type="radio" name="rtype-select" value="6" > ID
+    <br />
+    <br />
+    Relationship Name :
+    <input type="text" name="cm_RName" id="cm_RName"  maxlength="20">
+    <br />        
+</div>
+<div id="attradd-dialog" title="Add Entity" style="display:none;">
+    Attribute Name :
+    <input type="text" name="cm_AName" id="cm_AName"  maxlength="20">
+    <br />        
+</div>
+<div id="edit-dialog" title="Choose New Name" style="display:none;">
+    Select the new name of the object :
+    <br />
+    <input type="text" placeholder="New name" id="edit-new-name" maxlength="20"></input>
+    <br />
+</div> 
+</div>
 </body>
 </html>

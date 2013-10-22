@@ -1,4 +1,43 @@
-function isValidERDiagram() {
+var intervalId= 0;
+function _cleanStatusBar () {
+		$("#status-bar").removeClass("ui-state-error");
+		$("#status-bar").removeClass("ui-state-success");
+		$("#status-bar").removeClass("ui-state-highlight");
+	}
+
+function _setStatusMessage (message, isError) {
+	clearTimeout(intervalId);
+	_cleanStatusBar();
+	if (isError) {
+		$("#status-bar").addClass("ui-state-error");
+	} else {
+		$("#status-bar").addClass("ui-state-success");
+	}
+	$("#status-bar").text(message);
+	intervalId = setTimeout(_resetStatusBar,5000);
+}
+
+function _resetStatusBar () {
+	_cleanStatusBar();
+	$("#status-bar").addClass("ui-state-highlight");
+	$("#status-bar").text("Welcome to DBMod!");
+}
+
+function isValidERDiagram(statusBar) {
+
+	function _animatr(object) {
+		var initVal = $(object).css("background-color"),
+			animateVal = { backgroundColor: "#d2857f" };
+
+		$(object).animate(animateVal, {
+			duration : 2000,
+			complete : function () {
+				$(object).animate({ backgroundColor: initVal }, {
+					duration : 2000
+				});
+			}	
+		});
+	}
 
 
 	function _getAllUnsetNodes () {
@@ -42,7 +81,9 @@ function isValidERDiagram() {
 	function _isConnectedGraph() {
 		
 		var nodeSet = _getAllUnsetNodes(),
-			startingNode = null;
+			startingNode = null,
+			returnVal = true,
+			animationQueue = [];
 
 		for (var i in nodeSet) {
 			startingNode = i;
@@ -51,10 +92,17 @@ function isValidERDiagram() {
 		_markAllNeighbors(startingNode,nodeSet);
 
 		for (var i in nodeSet) {
-			if(nodeSet[i] != 1)
-				return false;
+			if(nodeSet[i] != 1) {
+				animationQueue.push(i);
+				//_animatr("#"+i);
+				returnVal = false;
+			}
+				
 		}
-		return true;
+		$.each(animationQueue, function (i) {
+			_animatr("#"+animationQueue[i]);
+		});
+		return returnVal;
 	}
 
 	function _hasStrongEntityAtRoot (object) {
@@ -89,7 +137,8 @@ function isValidERDiagram() {
 		//TODO: Highlight objects with highlighted content
 		//debugger;
 		var weakEntitySet = $(".weak-entity"),
-			returnResult = false;
+			returnResult = true,
+			animationQueue = [];
 		if (weakEntitySet.length == 0) { 
 			return true;
 		} else {
@@ -98,15 +147,22 @@ function isValidERDiagram() {
 
 				//is connected to parent via ID or EX relationship
 				//debugger;
-				if(_hasStrongEntityAtRoot(current))
-					returnResult = returnResult || true;
+				if(!_hasStrongEntityAtRoot(current)) {
+					returnResult = false;
+					animationQueue.push(current);
+				}
 			}
+			$.each(animationQueue, function (i) {
+				_animatr("#"+animationQueue[i]);
+			});
 			return returnResult;
 		}
 	}
 
 	function _allRelationsHaveTwoNonAttributeConnections() {
-		var allRelationships = $("div[class*='relationship']");
+		var allRelationships = $("div[class*='relationship']"),
+			returnVal = true,
+			animationQueue = [];
 		for (var i = 0; i < allRelationships.length; i++) {
 			var currentRelationship = allRelationships[i],
 				entityCounter = 0;
@@ -118,10 +174,14 @@ function isValidERDiagram() {
 				return true;
 			});
 			if(entityCounter < 2) {
-				return false;
+				returnVal = false;
+				animationQueue.push(currentRelationship.id);
 			}	
 		}
-		return true;
+		$.each(animationQueue, function (i) {
+			_animatr("#"+animationQueue[i]);
+		});
+		return returnVal;
 	}
 
 	function _forAllConnectionsToObjectPerform( object, call) {
@@ -143,7 +203,9 @@ function isValidERDiagram() {
 		}
 	}
 	function _singleParentRelationshipsHaveParentAndTwoChildren () {
-		var allRelationships = $(".op-relationship, .isa-relationship, .dc-relationship");
+		var allRelationships = $(".op-relationship, .isa-relationship, .dc-relationship"),
+			animationQueue = [],
+			returnVal = true;
 
 		if(allRelationships.length != 0) {
 			for (var i = 0; i < allRelationships.length; i++) {
@@ -161,13 +223,18 @@ function isValidERDiagram() {
 						childCount++;
 				}
 
-				if(!hasParent || (childCount <2))
-					return false;
+				if(!hasParent || (childCount <2)) {
+					animationQueue.push(currentRelationship);
+					returnVal = false;
+				}		
 			}
 		} else {
-			return true;
+			return returnVal;
 		}
-		return true;
+		$.each(animationQueue, function (i) {
+			_animatr("#"+animationQueue[i]);
+		});
+		return returnVal;
 	}
 
 	function _getTypeOfEntity (object) {
@@ -180,7 +247,8 @@ function isValidERDiagram() {
 
 	function _areChildAndParentOfSingleParentRelationsOfSameType (argument) {
 		var allRelationships = $(".isa-relationship, .dc-relationship, .op-relationship"),
-			errorFlag = false;
+			errorFlag = false,
+			animationQueue = [];
 
 		for (var i = 0; i < allRelationships.length; i++) {
 			var currentRelationship = allRelationships[i];
@@ -194,6 +262,7 @@ function isValidERDiagram() {
 						currentType = _getTypeOfEntity($(objectSelector));
 					} else if (currentType != _getTypeOfEntity($(objectSelector))) {
 						errorFlag = true;
+						animationQueue.push(otherNode);
 						return false;
 					}
 					return true;
@@ -201,6 +270,9 @@ function isValidERDiagram() {
 			});
 		}
 
+		$.each(animationQueue, function (i) {
+			_animatr("#"+animationQueue[i]);
+		});
 		if (errorFlag) {
 			return false;
 		} else {
@@ -217,22 +289,22 @@ function isValidERDiagram() {
 						//if contains attributes make further analysis
 						//else leave it here?
 						if (_areChildAndParentOfSingleParentRelationsOfSameType()) {
-							console.log("Works");
+							_setStatusMessage("Your ER Schema is valid",false);
 						} else {
-							console.log("Single parent relationships should have same type of entities as parents and children");
+							_setStatusMessage("Single parent relationships should have same type of entities as parents and children",true);
 						}
 
 					} else {
-						console.log("Some relationships have < 2 entity connections");
+						_setStatusMessage("Some relationships have < 2 entity connections",true);
 					}
 				} else {
-					console.log("Some relationships have no parent..");
+					_setStatusMessage("Some relationships have no parent..",true);
 				}
 			} else {
-				console.log("Some weak entities do not have ID or EX connections to strong entities");
+				_setStatusMessage("Some weak entities do not have ID or EX connections to strong entities",true);
 			}
 		} else {
-			console.log("Some objects in the ER Diagram are not connected..");
+			_setStatusMessage("Some objects in the ER Diagram are not connected..",true);
 		}
 	}
 

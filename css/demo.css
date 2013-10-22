@@ -14,7 +14,7 @@ a{
 }
 .container{
 	width: 100%;
-	position: relative;
+	position: absolute;
 	overflow:hidden;
 }
 .clr{
