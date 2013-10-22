@@ -79,14 +79,14 @@ $(function() {
                 modal : false,
                 buttons : {
                     "OK" : function () {
-                        var newName = $("#edit-new-name").val().trim();
+                        var newName = sanitizeName($("#edit-new-name").val().trim());
                         if(newName == "") {
                             //TODO: Properly validate values, for ex through universal validator?
                             spawnErrorDialogWithMessage("Invalid name!");
                         } else {
                             var jObj = $("#"+current_component_div);
                             if (isRegularRelationshipType(jObj) && isPresentRelationshipWithContent(newName)) {
-                                err_dialog("Relationship must have a unique name");
+                                _setStatusMessage("Relationship must have a unique name",true);
                             } else {
                                 if(editComponent(newName)) {
                                     $(this).dialog('close');
@@ -119,7 +119,7 @@ $(function() {
                 modal : false,
                 buttons : {
                     "OK" : function () {
-                        var newName = $("#edit-new-name").val().trim();
+                        var newName = sanitizeName($("#edit-new-name").val().trim());
                         if(newName == "") {
                             //TODO: Properly validate values, for ex through universal validator?
                             spawnErrorDialogWithMessage("Invalid name!");
@@ -239,7 +239,7 @@ $(function() {
     function editComponent(name) {
        // debugger;
         if(isEntityType($("#"+current_component_div)) && !shouldCreateEntity(name)) {
-            spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
+            _setStatusMessage(entityAlreadyExistsMessage,true);
             return false;
         } else {
             $("#"+current_component_div+" > div > strong").html(name);
@@ -258,6 +258,7 @@ $(function() {
     }
     
     function sanitizeName(string) {
+        string = string.slice(0,1).toUpperCase() + string.slice(1);
         string = string.replace(/\s+/g,' ');
         return string;
     }
@@ -289,7 +290,7 @@ $(function() {
 
     function isPresentRelationshipWithContent(content) {
         var objectsWithContent = $("div > div[class='inner-text'] > strong").filter(function() { 
-                                        return $(this)[0].innerHTML == content;
+                                        return $(this)[0].innerHTML.toLowerCase() == content.toLowerCase();
                                 }).parent().parent();
 
         for (var i = 0; i < objectsWithContent.length; i++) {
@@ -501,7 +502,7 @@ jsPlumb.bind('beforeDrop', function (info) {
         if( info.sourceId != info.targetId) {
             if(!doesConnectionExist(QsourceObj,QtargetObj)) {
                 if(isEntityType(QsourceObj) && isEntityType(QtargetObj)) {
-                    alert("Cannot directly join 2 entity types");
+                    _setStatusMessage("Cannot directly join 2 entity types",true);
                 } else if( (isRelationshipType(QsourceObj) && isEntityType(QtargetObj)) ||
                             (isRelationshipType(QtargetObj) && isEntityType(QsourceObj))) {
                     
@@ -619,17 +620,17 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                     if(isParentConnection) {
                                         if (hasParentConnection(relationShipObj)) {
-                                            alert("Cannot have more than 1 parent connections");
+                                            _setStatusMessage("Cannot have more than 1 parent connections",true);
                                             return false;
                                         } else {
                                             //no overlays for parent connection
                                         }
                                     } else {
                                         if (isNormalEntityConnection ) {
-                                            alert("Cannot create non-parent connection with normal entity.");
+                                            _setStatusMessage("Cannot create non-parent connection with normal entity.",true);
                                             return false;
                                         } else if ((getConnectionCount(relationShipObj) > 0) && !hasParentConnection(relationShipObj) ) {
-                                            alert("Cannot have 2 child connections.")
+                                            _setStatusMessage("Cannot have 2 child connections.",true)
                                             return false;
                                         } else {
                                             overlayConfig = [["Arrow", { width : 10, length: 10, location : 1, direction: 1}]];
@@ -738,7 +739,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                             }
                         });
                     } else {
-                        alert("Another attribute with the same name already exists!!");
+                        _setStatusMessage("Another attribute with the same name already exists!!",true);
                         return false;
                     }
                     
@@ -783,14 +784,14 @@ jsPlumb.bind('beforeDrop', function (info) {
                     }
                 });
             } else {
-                alert("A connection already exists between the source and the target!!");
+                _setStatusMessage("A connection already exists between the source and the target!!",true);
             }
         } else {
-            alert("Cannot create a connection between an object and itself");
+            _setStatusMessage("Cannot create a connection between an object and itself",true);
         }
         
     } else {
-        alert("One of the connection elements has reached its connection limit!!");
+        _setStatusMessage("One of the connection elements has reached its connection limit!!",true);
     }
 
     
@@ -828,7 +829,7 @@ $radios.on('change',function(){
 
 function shouldCreateEntity(name) {
     var matchingObjects = $("div > div[class='inner-text'] > strong").filter(function() { 
-                                        return $(this)[0].innerHTML == name;
+                                        return $(this)[0].innerHTML.toLowerCase() == name.toLowerCase();
                                 }).parent().parent();
     if( matchingObjects.length != 0) {
         for( var i in matchingObjects) {
@@ -899,7 +900,7 @@ $( "#Add-Attribute-Entity" ).click(function() {
 
 function wrongName(text){
     if( text == ""){
-        err_dialog("Please input a name!");
+        _setStatusMessage("Please input a name!",true);
         return 1
     }
     return 0
@@ -908,10 +909,10 @@ function wrongName(text){
 //REFAC
 function addEntity(textbox,eType){
     var tb_in = $("#" + textbox)[0];
-    tb_in.value = tb_in.value.trim();
+    tb_in.value = sanitizeName(tb_in.value.trim());
 
     if(tb_in.value == ""){
-        err_dialog("Entity must have a name!");
+        _setStatusMessage("Entity must have a name!",true);
         return;
     }
     else if(shouldCreateEntity(tb_in.value)) {
@@ -932,7 +933,7 @@ function addEntity(textbox,eType){
             positionAndRedraw(entityID.slice(1));
         }
         else{
-            err_dialog("Error with Entity Type.");
+            _setStatusMessage("Error with Entity Type.",true);
         }
         tb_in.value = "";
         $( "#nestedAccordion" ).accordion({ collapsible: true, active: false});
@@ -959,7 +960,7 @@ function addEntity(textbox,eType){
         $(entityID).contextMenu(contextMenuSettings.method,commonMenu,contextMenuSettings.option);
     } else 
     {
-        spawnErrorDialogWithMessage(entityAlreadyExistsMessage);
+        _setStatusMessage(entityAlreadyExistsMessage,true);
     }
 }
 //adding relationships
@@ -969,7 +970,7 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
         tb_in.value = sanitizeName(tb_in.value.trim());
@@ -982,7 +983,7 @@ function addRel(textbox,rType){
             $("#canvas").append(createRelationshipWithName(relationshipName,relationshipID.slice(1)));
             tb_in.value = "";
         } else {
-            err_dialog("Relationship must have unique name!");
+            _setStatusMessage("Relationship must have unique name!",true);
             return;
         }
         
@@ -1000,7 +1001,7 @@ function addRel(textbox,rType){
     else if(rType == "DECOM"){
         var tb_in = $("#" + textbox)[0];
     
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
             
         var relationshipName = tb_in.value
             relationshipSuffix = "-"+relationshipCounter+ "-dc-relationship";
@@ -1012,10 +1013,10 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
         var relationshipName = tb_in.value,
             relationshipSuffix = "-"+relationshipCounter+ "-ex-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
@@ -1026,10 +1027,10 @@ function addRel(textbox,rType){
         var tb_in = $("#" + textbox)[0];
     
         if( tb_in.value == ""){
-            err_dialog("Relationship must have a name!");
+            _setStatusMessage("Relationship must have a name!",true);
             return;
         }
-        tb_in.value = tb_in.value.trim();
+        tb_in.value = sanitizeName(tb_in.value.trim());
         var relationshipName = tb_in.value,
             relationshipSuffix = "-"+relationshipCounter+ "-id-relationship";
             relationshipID = "#"+relationshipName+relationshipSuffix;
@@ -1087,7 +1088,7 @@ function addAttr(textbox){
     console.log(tb_in);
     if(tb_in.value == "")
     {
-        err_dialog("Attribute must have a name!");
+        _setStatusMessage("Attribute must have a name!",true);
         return;
     }
     else
@@ -1179,7 +1180,7 @@ $('input[name=rtype-select]').on('click',function(){
 
 //bind the validating function to the button
 $("#verify-select").click(function(){
-    isValidERDiagram();
+    isValidERDiagram($("#status-bar"));
 });
     
     var initPosition = $("#sidebar").offset().top;
@@ -1209,8 +1210,7 @@ A CS4221 project by P05 --unfinished version--
     <li><a href="#tabs-Normal">Normal view</a></li>
     </ul>
     <div id="tabs-ERD">
-    <h1>Welcome to DBMod!</h1>
-    <p>Design your very own ER-diagrams and we will verify them for you!</p>
+    <div id="status-bar" class="status ui-state-highlight">Welcome to DBMod!</div>
     <div id="content">
     <div id="sidebar">
     <div id="nestedAccordion">

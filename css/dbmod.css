@@ -190,3 +190,18 @@ font-size: 15px;
 	border:solid 5px red;	
 }
 
+.ui-state-success
+{
+	background-color: #ebfed4;
+	color: #135508;
+	border: solid 2px #a5fb62;
+}
+
+.status {
+	margin: 7px;
+	border-radius: 4px;
+	font-size: 14px;
+	text-align: center;
+	padding: 10px;
+}
+
