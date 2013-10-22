@@ -622,7 +622,7 @@ jsPlumb.bind('beforeDrop', function (info) {
                                     attributeEndpoint = jsPlumb.selectEndpoints({ source: attribObj});
                                     connectionProperty.overlays = overlayConfig;
                                     newConnection = jsPlumb.connect(connectionProperty);
-                                    attributeEndpoint.setEnabled(false);
+                                    //attributeEndpoint.setEnabled(false);
 
                                     if(newConnection !== null) {
                                          newConnection.bind('click', function (connection) {
@@ -630,7 +630,7 @@ jsPlumb.bind('beforeDrop', function (info) {
 
                                             if(deleteConnection) {
                                                 if(isAttributeType(fetchParentOfEndpoint(connection.endpoints[0])) ||(isAttributeType(fetchParentOfEndpoint(connection.endpoints[1])))) {
-                                                    attributeEndpoint.setEnabled(true);
+                                                    //attributeEndpoint.setEnabled(true);
                                                 }
 
                                                 jsPlumb.detach(connection);

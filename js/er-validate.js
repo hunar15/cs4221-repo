@@ -59,7 +59,8 @@ function isValidERDiagram() {
 
 	function _hasStrongEntityAtRoot (object) {
 		var allConnectionsToObject = _getAllEdgesOfNode(object),
-			objectSelector = "#"+object;
+			objectSelector = "#"+object,
+			returnResult = false;
 
 		if(isNormalEntityType($(objectSelector))) {
 			return true;
@@ -71,30 +72,37 @@ function isValidERDiagram() {
 
 			var objectAtOtherEnd = currentConnection.endpoints[0].elementId == object ?
 								currentConnection.endpoints[1].elementId : currentConnection.endpoints[0].elementId;
-			if(currentConnection.getParameters().isParentConnection == true && isNormalWeakRelationshipType($(objectSelector)) ||
-			   currentConnection.getParameters().isParentConnection == false && !isNormalEntityType($(objectSelector)) &&
-			    isEntityType($(objectSelector))) {
-				return _hasStrongEntityAtRoot(objectAtOtherEnd);
+			
+			//is child connection and other side relationship
+			// or is parent connection and other side entity
+			if((currentConnection.getParameters().isParentConnection == false && isNormalWeakRelationshipType($("#"+objectAtOtherEnd))) ||
+			   (currentConnection.getParameters().isParentConnection == true && isEntityType($("#"+objectAtOtherEnd)))) {
+			   	//debugger;
+				returnResult = (returnResult || _hasStrongEntityAtRoot(objectAtOtherEnd));
 			} 
 
 		};
-		return false;
+		return returnResult;
 	}
 	function _weakEntitiesHaveStrongRoots () {
 		//fetch all weak entities
 		//TODO: Highlight objects with highlighted content
 		//debugger;
-		var weakEntitySet = $(".weak-entity");
+		var weakEntitySet = $(".weak-entity"),
+			returnResult = false;
+		if (weakEntitySet.length == 0) { 
+			return true;
+		} else {
+			for (var i = 0; i < weakEntitySet.length; i++) {
+				var current = weakEntitySet[i].id;
 
-		for (var i = 0; i < weakEntitySet.length; i++) {
-			var current = weakEntitySet[i].id;
-
-			//is connected to parent via ID or EX relationship
-
-			if(!_hasStrongEntityAtRoot(current))
-				return false;
+				//is connected to parent via ID or EX relationship
+				//debugger;
+				if(_hasStrongEntityAtRoot(current))
+					returnResult = returnResult || true;
+			}
+			return returnResult;
 		}
-		return true;
 	}
 
 	function _allRelationsHaveTwoNonAttributeConnections() {
@@ -162,6 +170,43 @@ function isValidERDiagram() {
 		return true;
 	}
 
+	function _getTypeOfEntity (object) {
+		if(isNormalEntityType(object)) {
+			return "strong";
+		} else {
+			return "weak";
+		}
+	}
+
+	function _areChildAndParentOfSingleParentRelationsOfSameType (argument) {
+		var allRelationships = $(".isa-relationship, .dc-relationship, .op-relationship"),
+			errorFlag = false;
+
+		for (var i = 0; i < allRelationships.length; i++) {
+			var currentRelationship = allRelationships[i];
+
+			var currentType =  null;
+			_forAllConnectionsToObjectPerform(currentRelationship,function (currentConnection, otherNode) {
+				var objectSelector = "#"+otherNode;
+
+				if (isEntityType($(objectSelector))) {
+					if(currentType == null) {
+						currentType = _getTypeOfEntity($(objectSelector));
+					} else if (currentType != _getTypeOfEntity($(objectSelector))) {
+						errorFlag = true;
+						return false;
+					}
+					return true;
+				}
+			});
+		}
+
+		if (errorFlag) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 	function mainExecution () {
 		
 		//Check if the ER-Diagram is a connected graph
@@ -171,6 +216,11 @@ function isValidERDiagram() {
 					if(_allRelationsHaveTwoNonAttributeConnections()) {
 						//if contains attributes make further analysis
 						//else leave it here?
+						if (_areChildAndParentOfSingleParentRelationsOfSameType()) {
+							console.log("Works");
+						} else {
+							console.log("Single parent relationships should have same type of entities as parents and children");
+						}
 
 					} else {
 						console.log("Some relationships have < 2 entity connections");
