@@ -1,6 +1,6 @@
 body {
-	background: url(../images/dust.jpg) top left repeat #acdacf;
-	font-family: 'Cookie', serif;
+	background-color: #555555;
+	font-family: "Trebuchet MS", Helvetica, sans-serif
 }
 
 #home-button{
@@ -12,10 +12,9 @@ body {
 	
 
 #outtxt{
-	background-image: url(../images/wood.jpg);
+	background-color:white;
 	font-family: Tahoma, sans-serif;
-	font-weight: bold;
-	 font-size: 12pt;
+    font-size: 12pt;
 }
 
 #Algorithm-container{
